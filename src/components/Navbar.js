@@ -1,6 +1,6 @@
 import logo from '../logo.svg';
 // import { useState } from 'react';
-import { AppBar, Toolbar, Container, makeStyles, List, ListItem, ListItemText } from "@material-ui/core";
+import { AppBar, Toolbar, Container, makeStyles, List, ListItem, ListItemText } from '@material-ui/core';
 
 const useStyles = makeStyles({
     navDisplayFlex: {
@@ -18,8 +18,8 @@ const useStyles = makeStyles({
         alignItems: 'center',
     },
     logo: {
-        width: '70px',
-        height: '46px',
+        width: 70,
+        height: 46,
     }
 });
 
