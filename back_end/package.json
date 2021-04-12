@@ -1,0 +1,26 @@
+{
+  "name": "fruits_n_veggies",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paul2048/fruitsnveggies.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paul2048/fruitsnveggies/issues"
+  },
+  "homepage": "https://github.com/paul2048/fruitsnveggies#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "pg": "^8.5.1"
+  }
+}
