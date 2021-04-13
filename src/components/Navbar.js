@@ -25,7 +25,6 @@ const useStyles = makeStyles({
 
 export default function Navbar() {
     const classes = useStyles();
-
     const navLinks = [
         { title: 'fruits', path: '/fruits' },
         { title: 'vegetables', path: '/vegetables' },
