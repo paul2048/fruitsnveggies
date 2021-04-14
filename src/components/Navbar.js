@@ -1,5 +1,6 @@
 import logo from '../logo.svg';
 // import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, Container, makeStyles, List, ListItem, ListItemText } from '@material-ui/core';
 
 const useStyles = makeStyles({
@@ -8,9 +9,8 @@ const useStyles = makeStyles({
         justifyContent: 'space-between',
     },
     linkText: {
-        textDecoration: 'none',
         textTransform: 'uppercase',
-        color: 'white',
+        color: 'black',
     },
     navbarDisplayFlex: {
         display: 'flex',
@@ -28,8 +28,7 @@ export default function Navbar() {
     const navLinks = [
         { title: 'fruits', path: '/fruits' },
         { title: 'vegetables', path: '/vegetables' },
-        { title: 'discounts', path: '/discounts' },
-        { title: 'about us', path: '/about' }
+        { title: 'discounts', path: '/discounts' }
     ];
 
     return (
@@ -37,27 +36,27 @@ export default function Navbar() {
             <Toolbar>
                 <Container className={classes.navbarDisplayFlex}>
                     <div className={classes.navbarDisplayFlex}>
-                        <a href="/">
+                        <Link to="/">
                             <img className={classes.logo} src={logo} alt="logo" />
-                        </a>
+                        </Link>
 
                         <List className={classes.navDisplayFlex} component="nav" aria-labelledby="main navigation">
                             {navLinks.map(({ title, path }) => (
-                                <a className={classes.linkText} href={path} key={title}>
+                                <Link className={classes.linkText} to={path} key={title}>
                                     <ListItem button>
                                         <ListItemText primary={title} />
                                     </ListItem>
-                                </a>
+                                </Link>
                             ))}
                         </List>
                     </div>
 
                     <div className={classes.navDisplayFlex}>
-                        <a className={classes.linkText} href="/login">
+                        <Link className={classes.linkText} to="/login">
                             <ListItem button>
                                 <ListItemText primary="sign in" />
                             </ListItem>
-                        </a>
+                        </Link>
                     </div>
                 </Container>
             </Toolbar>

@@ -1,5 +1,6 @@
 // import axios from 'axios';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Paper, makeStyles, Typography, TextField, Button, FormControl, Grid } from '@material-ui/core';
 
 const useStyles = makeStyles({
@@ -40,7 +41,9 @@ export default function Footer() {
             <Grid container spacing={4} justify="space-between">
                 <Grid item xs={12}>
                     <Typography className={classes.footerTitle} variant="h4">Fruits n' Veggies</Typography>
-                    <Button variant="contained" color="secondary">About us</Button>
+                    <Link to="/about">
+                        <Button variant="contained" color="secondary">About us</Button>
+                    </Link>
                 </Grid>
 
                 <Grid item xs={12} md={6}>

@@ -1,9 +1,7 @@
+import { Link } from 'react-router-dom';
 import { Paper, Grid, makeStyles, Typography } from '@material-ui/core';
 
 const useStyles = makeStyles({
-    grid: {
-        marginTop: 70,
-    },
     welcomePaper: {
         height: 280,
         background: `url(${require('../images/welcome_bg.svg').default})`,
@@ -15,22 +13,12 @@ const useStyles = makeStyles({
         textAlign: 'center',
         flexDirection: 'column',
     },
-    midPaperParent: {
+    gridItem: {
         '& :hover': {
             transform: 'scale(1.04)',
         },
         '& *': {
             transition: '0.2s',
-        },
-        '& > div': {
-            height: 280,
-            padding: 10,
-            position: 'relative',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            userSelect: 'none',
-            cursor: 'pointer',
         },
         '& img': {
             width: '90%',
@@ -43,9 +31,19 @@ const useStyles = makeStyles({
             pointerEvents: 'none',
         }
     },
+    gridItemPaper: {
+        height: 280,
+        padding: 10,
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        userSelect: 'none',
+        cursor: 'pointer',
+    },
     blockTitle: {
         zIndex: 100,
-    }
+    },
 });
 
 export default function Main() {
@@ -53,7 +51,7 @@ export default function Main() {
     const blockTitles = ['fruits', 'vegetables', 'discounts', 'all'];
 
     return (
-        <Grid className={classes.grid} container spacing={4} justify="center">
+        <Grid container spacing={4} justify="center">
             <Grid item xs={12}>
                 <Paper className={classes.welcomePaper} elevation={3}>
                     <Typography variant="h2">Welcome to</Typography>
@@ -62,11 +60,13 @@ export default function Main() {
             </Grid>
 
             {blockTitles.map((title) => (
-                <Grid className={classes.midPaperParent} item xs={12} sm={6} key={title}>
-                    <Paper elevation={3}>
-                        <img src={require(`../images/${title}.png`).default} alt={title} />
-                        <Typography className={classes.blockTitle} variant="h3">{title}</Typography>
-                    </Paper>
+                <Grid className={classes.gridItem} item xs={12} sm={6} key={title}>
+                    <Link to={title}>
+                        <Paper className={classes.gridItemPaper} elevation={3}>
+                            <img src={require(`../images/${title}.png`).default} alt={title} />
+                            <Typography className={classes.blockTitle} variant="h3">{title}</Typography>
+                        </Paper>
+                    </Link>
                 </Grid>
             ))}
         </Grid>

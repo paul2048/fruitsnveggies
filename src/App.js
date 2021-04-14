@@ -1,7 +1,16 @@
 import './App.css';
-import Navbar from './components/Navbar.js';
-import Main from './components/Main.js';
-import Footer from './components/Footer.js';
+
+import Navbar from './components/Navbar';
+import HomePage from './pages/HomePage';
+import FruitsPage from './pages/FruitsPage';
+import VegetablesPage from './pages/VegetablesPage';
+import DiscountsPage from './pages/DiscountsPage';
+import AllPage from './pages/AllPage';
+import AboutUsPage from './pages/AboutUsPage';
+import LoginPage from './pages/LoginPage';
+import Footer from './components/Footer';
+
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { Container, ThemeProvider } from '@material-ui/core';
 import { createMuiTheme } from '@material-ui/core/styles';
 
@@ -20,7 +29,7 @@ const theme = createMuiTheme({
     },
     palette: {
         primary: {
-            main: '#56ab45',
+            main: '#70d14f',
         }
     },
     shape: {
@@ -39,9 +48,19 @@ function App() {
     return (
         <Container maxWidth="md" className="App">
             <ThemeProvider theme={theme}>
-                <Navbar />
-                <Main />
-                <Footer />
+                <Router>
+                    <Navbar />
+                        <Switch>
+                            <Route exact path="/" component={HomePage} />
+                            <Route exact path="/fruits" component={FruitsPage} />
+                            <Route exact path="/vegetables" component={VegetablesPage} />
+                            <Route exact path="/discounts" component={DiscountsPage} />
+                            <Route exact path="/all" component={AllPage} />
+                            <Route exact path="/about" component={AboutUsPage} />
+                            <Route exact path="/login" component={LoginPage} />
+                        </Switch>
+                    <Footer />
+                </Router>
             </ThemeProvider>
         </Container>
     );
