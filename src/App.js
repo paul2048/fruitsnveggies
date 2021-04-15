@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import FruitsPage from './pages/FruitsPage';
 import VegetablesPage from './pages/VegetablesPage';
 import DiscountsPage from './pages/DiscountsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
 import AllPage from './pages/AllPage';
 import AboutUsPage from './pages/AboutUsPage';
 import LoginPage from './pages/LoginPage';
@@ -54,6 +55,8 @@ function App() {
                             <Route exact path="/" component={HomePage} />
                             <Route exact path="/fruits" component={FruitsPage} />
                             <Route exact path="/vegetables" component={VegetablesPage} />
+                            <Route path="/fruits/:productName" component={ProductDetailPage} />
+                            <Route path="/vegetables/:productName" component={ProductDetailPage} />
                             <Route exact path="/discounts" component={DiscountsPage} />
                             <Route exact path="/all" component={AllPage} />
                             <Route exact path="/about" component={AboutUsPage} />

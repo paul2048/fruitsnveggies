@@ -25,11 +25,7 @@ const useStyles = makeStyles({
 
 export default function Navbar() {
     const classes = useStyles();
-    const navLinks = [
-        { title: 'fruits', path: '/fruits' },
-        { title: 'vegetables', path: '/vegetables' },
-        { title: 'discounts', path: '/discounts' }
-    ];
+    const navLinks = ['fruits', 'vegetables', 'discounts'];
 
     return (
         <AppBar position="fixed">
@@ -41,8 +37,8 @@ export default function Navbar() {
                         </Link>
 
                         <List className={classes.navDisplayFlex} component="nav" aria-labelledby="main navigation">
-                            {navLinks.map(({ title, path }) => (
-                                <Link className={classes.linkText} to={path} key={title}>
+                            {navLinks.map((title) => (
+                                <Link className={classes.linkText} to={title} key={title}>
                                     <ListItem button>
                                         <ListItemText primary={title} />
                                     </ListItem>

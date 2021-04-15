@@ -66,9 +66,9 @@ export default function Footer() {
                     <Typography variant="h6">Follow us</Typography>
                     <Grid container justify="center">
                         {socialMediaPages.map((page) => (
-                            <Grid item>
+                            <Grid item key={page}>
                                 <Button className={classes.socialMediaBtn} variant="contained" color="secondary">
-                                    <img src={require(`../images/${page}.svg`).default} alt={page} key={page} />
+                                    <img src={require(`../images/${page}.svg`).default} alt={page} />
                                 </Button>
                             </Grid>
                         ))}

@@ -1,7 +1,8 @@
-import { Paper } from "@material-ui/core";
+import ProductsGrid from '../components/ProductsGrid';
+import { Paper } from '@material-ui/core';
 
 export default function FruitsPage() {
     return (
-        <Paper>Fruits</Paper>
+        <ProductsGrid productsType="fruits" />
     )
 }

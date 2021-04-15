@@ -1,24 +1,32 @@
 const { Pool } = require('pg');
 const express = require('express');
 const bodyParser = require('body-parser');
-// const axios = require('axios');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const app = express();
 
+// The port on which the app listents to
 const PORT = 4000;
+// Cities that Fruits n' Veggies delivers to
 const COVERED_CITIES = ['london', 'manchester', 'oxford'];
+// PosgreSQL error codes are "translated" here
 const PG_ERROR_CODES = {
-    duplicate_keys: '23505',
+    duplicateKeys: '23505',
 }
-// const URL = `http://localhost:${PORT}/`;
 
+// Import the environment variables, namely `DB_USER`, `DB_PASSWORD`, `DB_HOST`,
+// `DB_PORT`, and `DB_DATABASE`. The variables are credentials used for
+// connecting to a remote database. 
 require('dotenv').config({ path: __dirname + '/../.env' });
+// Use the `bodyParser` middleware which parses request bodies into `req.body`.
+// Reference: https://www.npmjs.com/package/body-parser
 app.use(bodyParser.json());
+// 
 app.use(cors({ credentials: true, origin: true })); // ??? do I need the cors arg?
 
-// Create a pool for the remote PostgreSQL database
+// Create a pool for the remote PostgreSQL database. 
 const pool = new Pool({
+    // Use the environment variables
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     host: process.env.DB_HOST,
@@ -34,11 +42,49 @@ const pool = new Pool({
 });
 
 // Helper functions that return `true` if the respective field is invalid
-const invalid_email = (email) => !/^[^@]+@[^@]+\.[^@]+$/.test(email);
-const invalid_name = (name) => !/^[A-Za-zÀ-ú ]+$/.test(name);
-const invalid_city = (city) => !COVERED_CITIES.includes(city.toLowerCase());
-const invalid_postcode = (postcode) => !/^[A-Za-z0-9 ]{1,8}$/.test(postcode);
-const invalid_street = (street) => !/^[0-9]+ [A-Za-z ]+$/.test(street);
+const invalidEmail = (email) => !/^[^@]+@[^@]+\.[^@]+$/.test(email);
+const invalidName = (name) => !/^[A-Za-zÀ-ú ]+$/.test(name);
+const invalidCity = (city) => !COVERED_CITIES.includes(city.toLowerCase());
+const invalidPostcode = (postcode) => !/^[A-Za-z0-9 ]{1,8}$/.test(postcode);
+const invalidStreet = (street) => !/^[0-9]+ [A-Za-z ]+$/.test(street);
+
+
+// Send the products of a specific type: fruits, vegetables, discounts, or all
+// (note that `productType` is optional; thus "/products" will get all products).
+app.get('/products/:productType?', (req, res) => {
+    const type = req.params.productType;
+
+    ///////////////// needs sell_by_date and number of available items
+    ///////////////// if the stock is limitedfrom the item tables
+    let q = 'SELECT "name", price, is_sold_per_unit FROM product';
+
+    // 
+    if (type === 'discounts') {
+        q = `SELECT DISTINCT ON ("name") "name", min(sell_by_date) as sell_by_date,
+        price, is_sold_per_unit, discounted_price FROM product
+        JOIN item ON product.id = item.product_id
+        WHERE discounted_price IS NOT NULL
+        GROUP BY sell_by_date, "name", price, is_sold_per_unit, discounted_price`;
+    }
+    // 
+    else if (type !== undefined) {
+        q += ` WHERE is_fruit = ${type === 'fruits'}`;
+    }
+
+    console.log(q)
+
+    try {
+        pool.query(q, [], (err, qRes) => {
+            if (err) {
+                console.error(err);
+            }
+            res.send(qRes.rows);
+        });
+    } catch(e) {
+        console.error(e);
+        res.status(500).send();
+    }
+});
 
 // app.get('/login', (req, res) => {
 
@@ -51,19 +97,19 @@ app.post('/accounts/signup', async (req, res) => {
     const errors = [];
 
     // Handle form errors
-    if (invalid_email(email))
+    if (invalidEmail(email))
         errors.push('Email is invalid');
     else if (password1 !== password2)
         errors.push('Passwords do not match');
-    else if (invalid_name(firstname))
+    else if (invalidName(firstname))
         errors.push('First name is invalid');
-    else if (invalid_name(lastname))
+    else if (invalidName(lastname))
         errors.push('Last name is invalid');
-    else if (invalid_city(city))
+    else if (invalidCity(city))
         errors.push('Your city is not in range');
-    else if (invalid_postcode(postcode))
+    else if (invalidPostcode(postcode))
         errors.push('Postcode is invalid');
-    else if (invalid_street(street))
+    else if (invalidStreet(street))
         errors.push('Street is invalid');
 
     // If any form error was found
@@ -85,7 +131,7 @@ app.post('/accounts/signup', async (req, res) => {
             // Handle query errors
             if (err) {
                 // If the email is already taken
-                if (err.code == PG_ERROR_CODES.duplicate_keys) {
+                if (err.code == PG_ERROR_CODES.duplicateKeys) {
                     errors.push('Email address is already taken');
                     return res.status(422).send({ errors: errors })
                 }
@@ -111,9 +157,9 @@ app.post('/accounts/login', async (req, res) => {
         // Get the hash associated with `email`
         const hash = (await pool.query(q, [email])).rows[0].hash;
         // `true` if the database's hash is the same as the form's hashed password
-        const login_success = await bcrypt.compare(password, hash);
+        const loginSuccess = await bcrypt.compare(password, hash);
 
-        if (login_success) {
+        if (loginSuccess) {
             res.send('Login successful');
         } else {
             res.status(422).send({ error: 'Credetials do not match' });
@@ -138,9 +184,5 @@ app.post('/accounts/logout', async (req, res) => {
         res.status(500).send();
     }
 });
-
-// axios.post(`${URL}users`, user)
-//     .then((res) => console.log(res.body))
-//     .catch((e) => console.error(e))
 
 app.listen(PORT);
