@@ -38,7 +38,8 @@ export default function Product(props) {
                         </Grid>
 
                         <Grid item sm={12}>
-                            <img src={require(`../images/all.png`).default} alt={name} />
+                            {console.log(`../images/products/${name.toLowerCase()}.png`)}
+                            <img src={require(`../images/products/${name.toLowerCase()}.png`).default} alt={name} />
                         </Grid>
                     </Grid>
                 </Link> 
