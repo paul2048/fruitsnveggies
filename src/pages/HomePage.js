@@ -64,7 +64,12 @@ export default function Main() {
                     <Link to={title}>
                         <Paper className={classes.gridItemPaper} elevation={3}>
                             <img src={require(`../images/${title}.png`).default} alt={title} />
-                            <Typography className={classes.blockTitle} variant="h3">{title}</Typography>
+                            <Typography
+                                className={classes.blockTitle}
+                                variant="h3"
+                            >
+                                {title}
+                            </Typography>
                         </Paper>
                     </Link>
                 </Grid>

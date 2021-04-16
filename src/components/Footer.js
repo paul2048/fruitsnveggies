@@ -1,4 +1,6 @@
 // import axios from 'axios';
+import EmailRoundedIcon from '@material-ui/icons/EmailRounded';
+import InfoRoundedIcon from '@material-ui/icons/InfoRounded';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Paper, makeStyles, Typography, TextField, Button, FormControl, Grid } from '@material-ui/core';
@@ -40,23 +42,48 @@ export default function Footer() {
         <Paper className={classes.footer} elevation={3}>
             <Grid container spacing={4} justify="space-between">
                 <Grid item xs={12}>
-                    <Typography className={classes.footerTitle} variant="h4">Fruits n' Veggies</Typography>
+                    <Typography
+                        className={classes.footerTitle}
+                        variant="h4"
+                    >
+                        Fruits n' Veggies
+                    </Typography>
                     <Link to="/about">
-                        <Button variant="contained" color="secondary">About us</Button>
+                        <Button variant="contained" color="secondary">
+                            <InfoRoundedIcon /> About us
+                        </Button>
                     </Link>
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                    <form className={classes.newsletterForm} method="POST" onSubmit={subscribe}>
+                    <form
+                        className={classes.newsletterForm}
+                        method="POST"
+                        onSubmit={subscribe}
+                    >
                         <Typography variant="h6">Subscribe to our newsletter</Typography>
                         <Grid container spacing={3} justify="center">
                             <Grid item xs={12} sm={6} md={8}>
                                 <FormControl fullWidth="true">
-                                    <TextField value={email} onChange={emailHandle} label="Email address" variant="outlined" />
+                                    <TextField
+                                        value={email}
+                                        onChange={emailHandle}
+                                        label="Email address"
+                                        variant="outlined"
+                                        autoComplete
+                                    />
                                 </FormControl>
                             </Grid>
                             <Grid item xs={12} sm={3} md={4}>
-                                <Button type="submit" size="large" fullWidth="true" variant="contained" color="primary">Subscribe</Button>
+                                <Button
+                                    type="submit"
+                                    size="large"
+                                    fullWidth="true"
+                                    variant="contained"
+                                    color="primary"
+                                >
+                                    <EmailRoundedIcon /> Subscribe
+                                </Button>
                             </Grid>
                         </Grid>
                     </form>
@@ -67,7 +94,11 @@ export default function Footer() {
                     <Grid container justify="center">
                         {socialMediaPages.map((page) => (
                             <Grid item key={page}>
-                                <Button className={classes.socialMediaBtn} variant="contained" color="secondary">
+                                <Button
+                                    className={classes.socialMediaBtn}
+                                    variant="contained"
+                                    color="secondary"
+                                >
                                     <img src={require(`../images/${page}.svg`).default} alt={page} />
                                 </Button>
                             </Grid>
