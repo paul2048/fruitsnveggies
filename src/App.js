@@ -41,6 +41,9 @@ const theme = createMuiTheme({
             sizeLarge: {
                 height: 56,
             },
+            text: {
+                textTransform: 'none',
+            }
         },
     },
 });

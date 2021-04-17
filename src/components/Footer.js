@@ -64,7 +64,7 @@ export default function Footer() {
                         <Typography variant="h6">Subscribe to our newsletter</Typography>
                         <Grid container spacing={3} justify="center">
                             <Grid item xs={12} sm={6} md={8}>
-                                <FormControl fullWidth="true">
+                                <FormControl fullWidth={true}>
                                     <TextField
                                         value={email}
                                         onChange={emailHandle}
@@ -78,7 +78,7 @@ export default function Footer() {
                                 <Button
                                     type="submit"
                                     size="large"
-                                    fullWidth="true"
+                                    fullWidth={true}
                                     variant="contained"
                                     color="primary"
                                 >

@@ -8,6 +8,7 @@ const app = express();
 // The port on which the app listents to
 const PORT = 4000;
 // Cities that Fruits n' Veggies delivers to
+/////////////////// Add cities to database table
 const COVERED_CITIES = ['london', 'manchester', 'oxford'];
 // PosgreSQL error codes are "translated" here
 const PG_ERROR_CODES = {
@@ -43,7 +44,7 @@ const pool = new Pool({
 
 // Helper functions that return `true` if the respective field is invalid
 const invalidEmail = (email) => !/^[^@]+@[^@]+\.[^@]+$/.test(email);
-const invalidName = (name) => !/^[A-Za-zÀ-ú ]+$/.test(name);
+const invalidName = (name) => !/^[^ ][A-Za-zÀ-ú ]+$/.test(name);
 const invalidCity = (city) => !COVERED_CITIES.includes(city.toLowerCase());
 const invalidPostcode = (postcode) => !/^[A-Za-z0-9 ]{1,8}$/.test(postcode);
 const invalidStreet = (street) => !/^[0-9]+ [A-Za-z ]+$/.test(street);
@@ -96,19 +97,21 @@ app.get('/cities', (req, res) => {
 
 app.post('/accounts/signup', async (req, res) => {
     // Destructure the form's data
-    const { email, password1, password2, firstname, lastname, city, postcode, street } = req.body;
+    const { firstname, lastname, email, password1, password2, city, postcode, street } = req.body;
     // Here will be appended strings describing the errors
     const errors = [];
 
     // Handle form errors
-    if (invalidEmail(email))
-        errors.push('Email is invalid');
-    else if (password1 !== password2)
-        errors.push('Passwords do not match');
-    else if (invalidName(firstname))
+    if (invalidName(firstname))
         errors.push('First name is invalid');
     else if (invalidName(lastname))
         errors.push('Last name is invalid');
+    else if (password1.length < 8)
+        errors.push('Password is shorter than 8 characters');
+    else if (password1 !== password2)
+        errors.push('Passwords do not match');
+    else if (invalidEmail(email))
+        errors.push('Email is invalid');
     else if (invalidCity(city))
         errors.push('Your city is not in range');
     else if (invalidPostcode(postcode))
