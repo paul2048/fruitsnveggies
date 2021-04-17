@@ -1,5 +1,5 @@
 import AddShoppingCartRoundedIcon from '@material-ui/icons/AddShoppingCartRounded';
-import { Paper, Typography, Grid, makeStyles, Button, Link, FormControl, OutlinedInput } from '@material-ui/core';
+import { Typography, Grid, makeStyles, Button, Link, FormControl, OutlinedInput } from '@material-ui/core';
 
 const useStyles = makeStyles({
     nameAndPicLink: {

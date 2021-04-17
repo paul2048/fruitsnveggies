@@ -71,7 +71,7 @@ app.get('/products/:productType?', (req, res) => {
         q += ` WHERE is_fruit = ${type === 'fruits'}`;
     }
 
-    console.log(q)
+    // console.log(q)
 
     try {
         pool.query(q, [], (err, qRes) => {
@@ -84,6 +84,10 @@ app.get('/products/:productType?', (req, res) => {
         console.error(e);
         res.status(500).send();
     }
+});
+
+app.get('/cities', (req, res) => {
+    res.send({ cities: COVERED_CITIES });
 });
 
 // app.get('/login', (req, res) => {

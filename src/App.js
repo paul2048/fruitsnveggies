@@ -8,7 +8,7 @@ import DiscountsPage from './pages/DiscountsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import AllPage from './pages/AllPage';
 import AboutUsPage from './pages/AboutUsPage';
-import LoginPage from './pages/LoginPage';
+import SignPage from './pages/SignPage';
 import Footer from './components/Footer';
 
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
@@ -60,7 +60,7 @@ function App() {
                             <Route exact path="/discounts" component={DiscountsPage} />
                             <Route exact path="/all" component={AllPage} />
                             <Route exact path="/about" component={AboutUsPage} />
-                            <Route exact path="/login" component={LoginPage} />
+                            <Route exact path="/login" component={SignPage} />
                         </Switch>
                     <Footer />
                 </Router>
