@@ -9,7 +9,7 @@ import axios from 'axios';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { AppBar, Menu, MenuItem, Toolbar, IconButton, makeStyles, List, ListItem, ListItemText, Avatar } from '@material-ui/core';
+import { AppBar, Menu, MenuItem, Toolbar, IconButton, makeStyles, List, ListItem, ListItemText, Avatar, Container } from '@material-ui/core';
 import { deepPurple } from '@material-ui/core/colors';
 
 
@@ -85,96 +85,98 @@ export default function Navbar() {
 
   return (
     <AppBar position="fixed">
-      <Toolbar>
-        <div className={classes.sectionMobile}>
-          <IconButton
-            edge="start"
-            aria-label="open drawer"
-            aria-controls="menu-appbar"
-            aria-haspopup="true"
-            onClick={handleHamburger}
-          >
-            <MenuRoundedIcon />
-          </IconButton>
-
-          <Menu
-            id="menu-appbar"
-            anchorEl={hamburgerAnchorEl}
-            open={hamburgerOpen}
-            onClose={handleCloseHamburger}
-          >
-            {navLinks.map((title) => (
-              <MenuItem onClick={handleCloseHamburger} key={title}>
-                <Link className={classes.linkText} to={`/${title}`} key={title}>
-                  {title}
-                </Link>
-              </MenuItem>
-            ))}
-          </Menu>
-        </div>
-
-        <Link to="/">
-          <img className={classes.logo} src={logo} alt="logo" />
-        </Link>
-
-        <div className={classes.sectionDesktop}>
-          <List
-            className={classes.navDisplayFlex}
-            component="nav"
-            aria-labelledby="main navigation">
-            {navLinks.map((title) => (
-              <Link className={classes.linkText} to={`/${title}`} key={title}>
-                <ListItem button>
-                  <ListItemText primary={title} />
-                </ListItem>
-              </Link>
-            ))}
-          </List>
-        </div>
-
-        <div className={classes.grow} />
-        {user
-          ? <div>
-            <IconButton color="inherit">
-              <ShoppingBasketRoundedIcon fontSize="large" />
-            </IconButton>
+      <Container>
+        <Toolbar>
+          <div className={classes.sectionMobile}>
             <IconButton
               edge="start"
-              aria-label="open profile menu"
-              aria-controls="profile-appbar"
+              aria-label="open drawer"
+              aria-controls="menu-appbar"
               aria-haspopup="true"
-              onClick={handleProfile}
+              onClick={handleHamburger}
             >
-              <Avatar className={classes.purpleAvatar}>
-                {user.firstname[0]}{user.lastname[0]}
-              </Avatar>
+              <MenuRoundedIcon />
             </IconButton>
 
             <Menu
-              id="profile-appbar"
-              anchorEl={profileAnchorEl}
-              open={profileOpen}
-              onClose={handleCloseProfile}
+              id="menu-appbar"
+              anchorEl={hamburgerAnchorEl}
+              open={hamburgerOpen}
+              onClose={handleCloseHamburger}
             >
-              <Link className={classes.linkText} to="/profile">
-                <MenuItem onClick={handleCloseProfile}>
-                  <AccountBoxRoundedIcon /> Profile
+              {navLinks.map((title) => (
+                <MenuItem onClick={handleCloseHamburger} key={title}>
+                  <Link className={classes.linkText} to={`/${title}`} key={title}>
+                    {title}
+                  </Link>
                 </MenuItem>
-              </Link>
-              <MenuItem onClick={handleSignOut}>
-                <ExitToAppRoundedIcon /> Sign out
-              </MenuItem>
+              ))}
             </Menu>
           </div>
-          : <div className={classes.navDisplayFlex}>
-            <Link className={classes.linkText} to="/login">
-              <ListItem button>
-                <MeetingRoomRoundedIcon />
-                <ListItemText primary="Sign in" />
-              </ListItem>
-            </Link>
-          </div>}
-      </Toolbar>
+
+          <Link to="/">
+            <img className={classes.logo} src={logo} alt="logo" />
+          </Link>
+
+          <div className={classes.sectionDesktop}>
+            <List
+              className={classes.navDisplayFlex}
+              component="nav"
+              aria-labelledby="main navigation">
+              {navLinks.map((title) => (
+                <Link className={classes.linkText} to={`/${title}`} key={title}>
+                  <ListItem button>
+                    <ListItemText primary={title} />
+                  </ListItem>
+                </Link>
+              ))}
+            </List>
+          </div>
+
+          <div className={classes.grow} />
+          {user
+            ? <div>
+              <IconButton color="inherit">
+                <ShoppingBasketRoundedIcon fontSize="large" />
+              </IconButton>
+              <IconButton
+                edge="start"
+                aria-label="open profile menu"
+                aria-controls="profile-appbar"
+                aria-haspopup="true"
+                onClick={handleProfile}
+              >
+                <Avatar className={classes.purpleAvatar}>
+                  {user.firstname[0]}{user.lastname[0]}
+                </Avatar>
+              </IconButton>
+
+              <Menu
+                id="profile-appbar"
+                anchorEl={profileAnchorEl}
+                open={profileOpen}
+                onClose={handleCloseProfile}
+              >
+                <Link className={classes.linkText} to="/profile">
+                  <MenuItem onClick={handleCloseProfile}>
+                    <AccountBoxRoundedIcon /> Profile
+                  </MenuItem>
+                </Link>
+                <MenuItem onClick={handleSignOut}>
+                  <ExitToAppRoundedIcon /> Sign out
+                </MenuItem>
+              </Menu>
+            </div>
+            : <div className={classes.navDisplayFlex}>
+              <Link className={classes.linkText} to="/login">
+                <ListItem button>
+                  <MeetingRoomRoundedIcon />
+                  <ListItemText primary="Sign in" />
+                </ListItem>
+              </Link>
+            </div>}
+        </Toolbar>
+      </Container>
     </AppBar>
   );
 }

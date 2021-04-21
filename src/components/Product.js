@@ -1,10 +1,10 @@
 import AddShoppingCartRoundedIcon from '@material-ui/icons/AddShoppingCartRounded';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Typography, Grid, makeStyles, Button, FormControl, OutlinedInput } from '@material-ui/core';
 
 const useStyles = makeStyles({
   nameAndPicLink: {
-    textAlign: 'center',
     color: 'black',
     cursor: 'pointer',
     '& :hover': {
@@ -16,7 +16,7 @@ const useStyles = makeStyles({
   formGrid: {
     textAlign: 'center',
   },
-  quntityInput: {
+  quantityInput: {
     width: 64,
     height: 36,
   },
@@ -26,9 +26,13 @@ const useStyles = makeStyles({
 });
 
 export default function Product(props) {
-  // const [quantity, setProducts] = useState([]);
+  const [quantity, setQuantity] = useState(1);
   const { name, price, is_sold_per_unit } = props;
   const classes = useStyles();
+
+  const handleQuntity = (e) => {
+    setQuantity(e.target.value);
+  };
 
   return (
     <Grid container spacing={1} justify="center" alignItems="center">
@@ -40,7 +44,9 @@ export default function Product(props) {
             </Grid>
 
             <Grid item sm={12}>
-              <img src={require(`../images/products/${name.toLowerCase()}.png`).default} alt={name} />
+              <img
+                src={require(`../images/products/${name.toLowerCase()}.png`).default}
+                alt={name} />
             </Grid>
           </Grid>
         </Link>
@@ -63,8 +69,10 @@ export default function Product(props) {
             <Grid item xs={3} sm={6} md={3}>
               <FormControl>
                 <OutlinedInput
-                  className={classes.quntityInput}
+                  className={classes.quantityInput}
                   type="number"
+                  value={quantity}
+                  onChange={handleQuntity}
                   inputProps={{ min: 1, max: 32 }}
                 />
               </FormControl>
@@ -76,7 +84,7 @@ export default function Product(props) {
                 variant="contained"
                 color="primary"
               >
-                <AddShoppingCartRoundedIcon /> Add £{price}
+                <AddShoppingCartRoundedIcon />&nbsp; £{(quantity * price).toFixed(2)}
               </Button>
             </Grid>
           </Grid>

@@ -73,7 +73,7 @@ export default function Footer() {
                   />
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={3} md={4}>
+              <Grid item xs={12} sm={4} md={4}>
                 <Button
                   type="submit"
                   size="large"

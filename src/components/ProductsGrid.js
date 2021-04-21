@@ -42,9 +42,9 @@ const useStyles = makeStyles({
 export default function ProductsGrid(props) {
   const sortFactors = ['Name', 'Price'];
   const [anchorEl, setAnchorEl] = useState(null);
+  const [sortBy, setSortBy] = useState(sortFactors[0]);
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState(sortFactors[0]);
   const type = props.productsType;
   const classes = useStyles();
   const open = Boolean(anchorEl);
