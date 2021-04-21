@@ -1,9 +1,17 @@
 import logo from '../logo.svg';
 import MenuRoundedIcon from '@material-ui/icons/MenuRounded';
 import ExitToAppRoundedIcon from '@material-ui/icons/ExitToAppRounded';
+import MeetingRoomRoundedIcon from '@material-ui/icons/MeetingRoomRounded';
+import ShoppingBasketRoundedIcon from '@material-ui/icons/ShoppingBasketRounded';
+import AccountBoxRoundedIcon from '@material-ui/icons/AccountBoxRounded';
+
+import axios from 'axios';
 import { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { AppBar, Menu, MenuItem, Toolbar, IconButton, makeStyles, List, ListItem, ListItemText } from '@material-ui/core';
+import { AppBar, Menu, MenuItem, Toolbar, IconButton, makeStyles, List, ListItem, ListItemText, Avatar } from '@material-ui/core';
+import { deepPurple } from '@material-ui/core/colors';
+
 
 const useStyles = makeStyles((theme) => ({
   navDisplayFlex: {
@@ -11,7 +19,6 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'space-between',
   },
   linkText: {
-    textTransform: 'uppercase',
     color: 'black',
   },
   logo: {
@@ -20,6 +27,10 @@ const useStyles = makeStyles((theme) => ({
   },
   grow: {
     flexGrow: 1,
+  },
+  purpleAvatar: {
+    color: theme.palette.getContrastText(deepPurple[500]),
+    backgroundColor: deepPurple[500],
   },
   sectionMobile: {
     display: 'flex',
@@ -36,18 +47,41 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function Navbar() {
+  const [hamburgerAnchorEl, setHamburgerAnchorEl] = useState(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const classes = useStyles();
-  const [anchorEl, setAnchorEl] = useState(null);
-  const navLinks = ['fruits', 'vegetables', 'discounts'];
-  const open = Boolean(anchorEl);
+  const history = useHistory();
+  const navLinks = ['Fruits', 'Vegetables', 'Discounts'];
+  const hamburgerOpen = Boolean(hamburgerAnchorEl);
+  const profileOpen = Boolean(profileAnchorEl);
+  const user = JSON.parse(localStorage.getItem('user'));
 
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
+  const handleHamburger = (event) => {
+    setHamburgerAnchorEl(event.currentTarget);
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
+  const handleCloseHamburger = () => {
+    setHamburgerAnchorEl(null);
   };
+
+  const handleProfile = (event) => {
+    setProfileAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseProfile = () => {
+    setProfileAnchorEl(null);
+  };
+
+  const handleSignOut = () => {
+    axios.get('http://localhost:4000/accounts/logout')
+    .then(() => {
+        localStorage.removeItem('user');
+        setProfileAnchorEl(null)
+        history.push('/');
+        window.location.reload();
+      })
+      .catch((err) => console.error(err));
+  }
 
   return (
     <AppBar position="fixed">
@@ -55,32 +89,22 @@ export default function Navbar() {
         <div className={classes.sectionMobile}>
           <IconButton
             edge="start"
-            className={classes.menuButton}
             aria-label="open drawer"
             aria-controls="menu-appbar"
             aria-haspopup="true"
-            onClick={handleMenu}
+            onClick={handleHamburger}
           >
             <MenuRoundedIcon />
           </IconButton>
 
           <Menu
             id="menu-appbar"
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={open}
-            onClose={handleClose}
+            anchorEl={hamburgerAnchorEl}
+            open={hamburgerOpen}
+            onClose={handleCloseHamburger}
           >
             {navLinks.map((title) => (
-              <MenuItem onClick={handleClose} key={title}>
+              <MenuItem onClick={handleCloseHamburger} key={title}>
                 <Link className={classes.linkText} to={`/${title}`} key={title}>
                   {title}
                 </Link>
@@ -109,15 +133,48 @@ export default function Navbar() {
         </div>
 
         <div className={classes.grow} />
-        <div className={classes.navDisplayFlex}>
-          <Link className={classes.linkText} to="/login">
-            <ListItem button>
-              <ExitToAppRoundedIcon />
-              <ListItemText primary="sign in" />
-            </ListItem>
-          </Link>
-        </div>
+        {user
+          ? <div>
+            <IconButton color="inherit">
+              <ShoppingBasketRoundedIcon fontSize="large" />
+            </IconButton>
+            <IconButton
+              edge="start"
+              aria-label="open profile menu"
+              aria-controls="profile-appbar"
+              aria-haspopup="true"
+              onClick={handleProfile}
+            >
+              <Avatar className={classes.purpleAvatar}>
+                {user.firstname[0]}{user.lastname[0]}
+              </Avatar>
+            </IconButton>
+
+            <Menu
+              id="profile-appbar"
+              anchorEl={profileAnchorEl}
+              open={profileOpen}
+              onClose={handleCloseProfile}
+            >
+              <Link className={classes.linkText} to="/profile">
+                <MenuItem onClick={handleCloseProfile}>
+                  <AccountBoxRoundedIcon /> Profile
+                </MenuItem>
+              </Link>
+              <MenuItem onClick={handleSignOut}>
+                <ExitToAppRoundedIcon /> Sign out
+              </MenuItem>
+            </Menu>
+          </div>
+          : <div className={classes.navDisplayFlex}>
+            <Link className={classes.linkText} to="/login">
+              <ListItem button>
+                <MeetingRoomRoundedIcon />
+                <ListItemText primary="Sign in" />
+              </ListItem>
+            </Link>
+          </div>}
       </Toolbar>
     </AppBar>
-  )
+  );
 }

@@ -37,7 +37,7 @@ const init = (passport, getUserBy) => {
         lastname: user.lastname,
         postcode: user.postcode,
         street: user.street,
-      }
+      };
       done(null, userInfo);
     } catch (e) {
       console.error(e);

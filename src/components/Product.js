@@ -1,9 +1,11 @@
 import AddShoppingCartRoundedIcon from '@material-ui/icons/AddShoppingCartRounded';
-import { Typography, Grid, makeStyles, Button, Link, FormControl, OutlinedInput } from '@material-ui/core';
+import { Link } from 'react-router-dom';
+import { Typography, Grid, makeStyles, Button, FormControl, OutlinedInput } from '@material-ui/core';
 
 const useStyles = makeStyles({
   nameAndPicLink: {
     textAlign: 'center',
+    color: 'black',
     cursor: 'pointer',
     '& :hover': {
       '& *': {
@@ -31,7 +33,7 @@ export default function Product(props) {
   return (
     <Grid container spacing={1} justify="center" alignItems="center">
       <Grid item sm={12}>
-        <Link className={classes.nameAndPicLink} to="test">
+        <Link className={classes.nameAndPicLink} to={`/product?name=${name}`}>
           <Grid container alignItems="center" direction="column">
             <Grid item sm={12}>
               <Typography variant="h5">{name}</Typography>

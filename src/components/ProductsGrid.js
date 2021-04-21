@@ -2,9 +2,8 @@ import Product from './Product';
 import axios from 'axios';
 import SortRoundedIcon from '@material-ui/icons/SortRounded';
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab';
-import { Grid, makeStyles, Paper, Typography, IconButton, Menu, MenuItem, Button } from '@material-ui/core';
+import { Grid, makeStyles, Paper, Typography, Menu, MenuItem, Button } from '@material-ui/core';
 
 const useStyles = makeStyles({
   headerPaper: {
@@ -50,12 +49,13 @@ export default function ProductsGrid(props) {
   const classes = useStyles();
   const open = Boolean(anchorEl);
 
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
+  const handleMenu = (e) => {
+    setAnchorEl(e.currentTarget);
   };
 
   const handleClose = (e) => {
-    setSortBy(e.target.innerText);
+    const sortByCriterion = e.target.innerText;
+    if (sortByCriterion) setSortBy(sortByCriterion);
     setAnchorEl(null);
   };
 
@@ -69,7 +69,7 @@ export default function ProductsGrid(props) {
       .catch((e) => console.error(e));
 
     handlePageChange('', page);
-  }, []);
+  }, [type, page]);
 
   return (
     <Grid className={classes.grid} container spacing={4}>
@@ -83,18 +83,9 @@ export default function ProductsGrid(props) {
 
       <Grid item xs={12}>
         <Paper className={classes.sortPaper}>
-          <IconButton
-            edge="start"
-            className={classes.menuButton}
-            aria-label="open drawer"
-            aria-controls="menu-appbar"
-            aria-haspopup="true"
-            onClick={handleMenu}
-          >
-            <Button variant="contained">
-              Sorting by {sortBy} <SortRoundedIcon />
-            </Button>
-          </IconButton>
+          <Button variant="contained" onClick={handleMenu}>
+            Sorting by {sortBy} <SortRoundedIcon />
+          </Button>
 
           <Menu
             id="menu-appbar"
@@ -122,15 +113,13 @@ export default function ProductsGrid(props) {
 
       {products.map(({ name, price, is_sold_per_unit }) => (
         <Grid className={classes.gridItem} item xs={12} sm={6} key={name}>
-          <Link to={`/product?name=${name}`}>
-            <Paper className={classes.gridItemPaper}>
-              <Product
-                name={name}
-                price={price}
-                is_sold_per_unit={is_sold_per_unit}
-              />
-            </Paper>
-          </Link>
+          <Paper className={classes.gridItemPaper}>
+            <Product
+              name={name}
+              price={price}
+              is_sold_per_unit={is_sold_per_unit}
+            />
+          </Paper>
         </Grid>
       ))}
 
@@ -153,5 +142,5 @@ export default function ProductsGrid(props) {
         </Paper>
       </Grid>
     </Grid>
-  )
+  );
 }

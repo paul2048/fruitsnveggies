@@ -22,7 +22,8 @@ export default function SignUpForm() {
       .then((resp) => setCitiesArr(resp.data.cities));
 
   const handleFormErrors = (err) => {
-    setFormErrors(err.response.data.errors)
+    console.log(err.response)
+    setFormErrors(err.response.data)
   };
 
   const signUpUser = (e) => {
@@ -44,7 +45,10 @@ export default function SignUpForm() {
 
     // Send a request to the server to sign up the user
     axios.post('http://localhost:4000/accounts/signup', data, { withCredentials: true })
-      .then((res) => console.log(res))
+      .then((res) => {
+        console.log(res)
+        window.location.reload();
+      })
       .catch((err) => handleFormErrors(err));
   }
 

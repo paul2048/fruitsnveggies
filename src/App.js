@@ -11,6 +11,7 @@ import AboutUsPage from './pages/AboutUsPage';
 import SignPage from './pages/SignPage';
 import Footer from './components/Footer';
 
+import axios from 'axios';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { Container, ThemeProvider } from '@material-ui/core';
 import { createMuiTheme } from '@material-ui/core/styles';
@@ -58,7 +59,15 @@ const theme = createMuiTheme({
   },
 });
 
-function App() {
+export default function App() {
+  window.addEventListener('storage', (e) => {
+    console.log(e)
+    if (localStorage.getItem('user') === null) {
+      axios.get('http://localhost:4000/accounts/logout');
+      window.location.reload();
+    }
+  }, false);
+
   return (
     <Container maxWidth="md" className="App">
       <ThemeProvider theme={theme}>
@@ -80,5 +89,3 @@ function App() {
     </Container>
   );
 }
-
-export default App;

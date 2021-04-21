@@ -1,15 +1,20 @@
 import axios from 'axios';
 import ExitToAppRoundedIcon from '@material-ui/icons/ExitToAppRounded';
 import { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { TextField, Grid, Button, Typography, FormControl, FormHelperText } from '@material-ui/core';
 
 export default function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formErrors, setFormErrors] = useState({});
+  const history = useHistory();
 
-  const handleFormErrors = (err) => {
-    setFormErrors({ password: 'Credetials are incorrect', email: 'Credetials are incorrect' })
+  const handleFormErrors = () => {
+    setFormErrors({
+      password: 'Credetials are incorrect',
+      email: 'Credetials are incorrect',
+    });
   };
 
   const signInUser = (e) => {
@@ -21,21 +26,15 @@ export default function SignInForm() {
       email: email,
       password: password,
     };
-    console.log(data);
 
     // Send a request to the server to sign in the user
     axios.post('http://localhost:4000/accounts/login', data, { withCredentials: true })
-      .then((res) => console.log(res))
+      .then((res) => {
+        localStorage.setItem('user', JSON.stringify(res.data));
+        history.push('/');
+        window.location.reload();
+      })
       .catch((err) => handleFormErrors(err));
-
-    // Axios({
-    //     method: 'GET',
-    //     withCredentials: true,
-    //     url: 'http://localhost:4000/user',
-    // }).then((res) => {
-    //     console.log('This is what I get from backend: ')
-    //     console.log(res)
-    // });
   }
 
   const handleEmail = (e) => {
@@ -84,10 +83,10 @@ export default function SignInForm() {
 
         <Grid item>
           <Button variant="contained" color="primary" type="submit">
-            <ExitToAppRoundedIcon />Sign in
-                    </Button>
+            <ExitToAppRoundedIcon /> Sign in
+          </Button>
         </Grid>
       </Grid>
     </form>
-  )
+  );
 }

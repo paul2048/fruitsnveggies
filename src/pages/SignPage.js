@@ -1,6 +1,7 @@
 import SignInForm from '../components/SignInForm';
 import SignUpForm from '../components/SignUpForm';
 import { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { Paper, Typography, Button, makeStyles } from '@material-ui/core';
 
 const useStyles = makeStyles({
@@ -16,8 +17,11 @@ const useStyles = makeStyles({
 export default function LoginPage() {
   const [showSignIn, setShowSignIn] = useState(true);
   const classes = useStyles();
+  const history = useHistory();
 
   const handleShowSignIn = () => setShowSignIn(!showSignIn);
+
+  if (localStorage.getItem('user')) history.push('/');
 
   return (
     <Paper className={classes.formPaper}>

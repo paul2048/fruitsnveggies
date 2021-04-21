@@ -138,8 +138,8 @@ app.post('/accounts/signup', async (req, res) => {
     errors.street = 'Street is invalid';
 
   // If any form error was found
-  if (Object.entries(errors)) {
-    return res.status(422).send({ errors: errors });
+  if (Object.entries(errors).length > 0) {
+    return res.status(422).send(errors);
   }
 
   try {
@@ -147,7 +147,7 @@ app.post('/accounts/signup', async (req, res) => {
     // `user` is a reserved keyword, so we need to use the quotes around it.
     // Reference: https://stackoverflow.com/a/9036651/7367049
     const q = `INSERT INTO "user" (email, hash, firstname, lastname, city, postcode, street)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7)`;
+              VALUES ($1, $2, $3, $4, $5, $6, $7)`;
     const args = [email, hash, firstname, lastname, city, postcode, street];
 
     // Try to insert the user into the database
@@ -157,7 +157,7 @@ app.post('/accounts/signup', async (req, res) => {
         // If the email is already taken
         if (err.code == PG_ERROR_CODES.duplicateKeys) {
           errors.email = 'Email address is already taken';
-          return res.status(422).send({ errors: errors })
+          return res.status(422).send(errors)
         }
         // Print any other errors
         console.error(err);
@@ -171,12 +171,25 @@ app.post('/accounts/signup', async (req, res) => {
   }
 });
 
-app.post('/accounts/login', passport.authenticate('local'));
+app.post('/accounts/login', passport.authenticate('local'), (req, res) => {
+  const userInfo = {
+    balance: req.user.balance,
+    city: req.user.city,
+    email: req.user.email,
+    firstname: req.user.firstname,
+    lastname: req.user.lastname,
+    postcode: req.user.postcode,
+    street: req.user.street,
+  };
+  res.send(userInfo);
+});
 
-// app.get('/user', (req, res) => {
-//     res.send(req.user);
-// });
+app.get('/user', (req, res) => res.send(req.user));
 
-app.post('/accounts/logout', (req) => req.logOut());
+app.get('/accounts/logout', (req, res) => {
+  req.session.destroy();
+  req.logout();
+  res.sendStatus(200);
+});
 
 app.listen(PORT);
