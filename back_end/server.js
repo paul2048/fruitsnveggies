@@ -66,15 +66,15 @@ app.get('/products/:productType?', (req, res) => {
 
   ///////////////// needs sell_by_date and number of available items
   ///////////////// if the stock is limitedfrom the item tables
-  let q = 'SELECT "name", price, is_sold_per_unit FROM product';
+  let q = 'SELECT "name", price, sell_per_unit FROM product';
 
   // 
   if (type === 'discounts') {
     q = `SELECT DISTINCT ON ("name") "name", min(sell_by_date) as sell_by_date,
-        price, is_sold_per_unit, discounted_price FROM product
+        price, sell_per_unit, discounted_price FROM product
         JOIN item ON product.id = item.product_id
         WHERE discounted_price IS NOT NULL
-        GROUP BY sell_by_date, "name", price, is_sold_per_unit, discounted_price`;
+        GROUP BY sell_by_date, "name", price, sell_per_unit, discounted_price`;
   }
   // 
   else if (type !== undefined) {

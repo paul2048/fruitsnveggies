@@ -49,8 +49,11 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState({});
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [nutrients, setNutrients] = useState({});
   const classes = useStyles();
+  const nutrients = ['water (g)', 'protein (g)', 'fat (g)', 'carbohydrates (g)', 'fiber (g)', 'sugars (g)',
+    'calcium (mg)', 'iron (mg)', 'magnesium (mg)', 'phosphorus (mg)', 'potassium (mg)', 'sodium (g)',
+    'vitamin a (IU)', 'vitamin c (mg)', 'vitamin b1 (mg)', 'vitamin b2 (mg)', 'vitamin b3 (mg)',
+    'vitamin b5 (mg)', 'vitamin b6 (mg)', 'vitamin e (mg)'];
 
   const handleQuntity = (e) => {
     setQuantity(e.target.value);
@@ -59,16 +62,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     axios.get(window.location.href.replace(':3000', ':4000'))
       .then((res) => {
-        const product = res.data;
-        setProduct(product);
-        
-        const nutrients = Object.fromEntries(
-          Object.entries(product).filter(([key]) => {
-            return key.split(' -').length === 2;
-          }));
-        console.log(nutrients)
-
-        setNutrients(nutrients);
+        setProduct(res.data);
         setIsLoading(false);
       })
       .catch((e) => console.error(e));
@@ -77,6 +71,7 @@ export default function ProductDetailPage() {
   return (!isLoading &&
     <Paper>
       <Grid className={classes.mainContainer} container spacing={2}>
+        {/* Name and image */}
         <Grid item xs={12} sm={5}>
           <Grid container spacing={3} justify="center">
             <Grid item xs={12}>
@@ -92,6 +87,7 @@ export default function ProductDetailPage() {
           </Grid>
         </Grid>
 
+        {/* Add to cart + description */}
         <Grid item xs={12} sm={7}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
@@ -106,7 +102,7 @@ export default function ProductDetailPage() {
                   <Grid item xs={6} sm={6} md={3}>
                     <Typography variant="h5">
                       £{product.price}
-                      <small>/{product.is_sold_per_unit ? "unit" : "200g"}</small>
+                      <small>/{product.sell_per_unit ? "unit" : "200g"}</small>
                     </Typography>
                   </Grid>
 
@@ -143,6 +139,7 @@ export default function ProductDetailPage() {
           </Grid>
         </Grid>
 
+        {/* Nutrition */}
         <Grid item xs={12}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -165,12 +162,10 @@ export default function ProductDetailPage() {
                       <StyledTableCell align="right">{product.kj} kJ ({product.kcal} kcal)</StyledTableCell>
                     </StyledTableRow>
 
-                    {Object.entries(nutrients).map(([nutrient, value]) => (
+                    {nutrients.map((nutrient) => (
                       <StyledTableRow key={nutrient}>
-                        <StyledTableCell align="right">{nutrient.split(' -')[0]}</StyledTableCell>
-                        <StyledTableCell align="right">
-                          {parseFloat(value.toFixed(4))} <small>({nutrient.split(' -')[1]})</small>
-                        </StyledTableCell>
+                        <StyledTableCell align="right">{nutrient}</StyledTableCell>
+                        <StyledTableCell align="right">{product[nutrient].toFixed(3)}</StyledTableCell>
                       </StyledTableRow>
                     ))}
                   </TableBody>

@@ -111,13 +111,13 @@ export default function ProductsGrid(props) {
         </Paper>
       </Grid>
 
-      {products.map(({ name, price, is_sold_per_unit }) => (
+      {products.map(({ name, price, sell_per_unit }) => (
         <Grid className={classes.gridItem} item xs={12} sm={6} key={name}>
           <Paper className={classes.gridItemPaper}>
             <Product
               name={name}
               price={price}
-              is_sold_per_unit={is_sold_per_unit}
+              sell_per_unit={sell_per_unit}
             />
           </Paper>
         </Grid>

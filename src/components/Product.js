@@ -27,7 +27,7 @@ const useStyles = makeStyles({
 
 export default function Product(props) {
   const [quantity, setQuantity] = useState(1);
-  const { name, price, is_sold_per_unit } = props;
+  const { name, price, sell_per_unit } = props;
   const classes = useStyles();
 
   const handleQuntity = (e) => {
@@ -63,7 +63,7 @@ export default function Product(props) {
           >
             <Grid item xs={3} sm={6} md={3}>
               £{price}
-              <small>/{is_sold_per_unit ? "unit" : "200g"}</small>
+              <small>/{sell_per_unit ? "unit" : "200g"}</small>
             </Grid>
 
             <Grid item xs={3} sm={6} md={3}>
