@@ -11,8 +11,6 @@ const app = express();
 
 // The port on which the app listents to
 const PORT = 4000;
-/////////////////// Add cities to database table
-const COVERED_CITIES = ['london', 'manchester', 'oxford'];
 // PosgreSQL error codes are "translated" here
 const PG_ERROR_CODES = {
   duplicateKeys: '23505',
@@ -40,9 +38,11 @@ app.use(passport.session());
 const initPassport = require('./passportConfig.js');
 initPassport(
   passport,
+  // `getByIdentifier` can be 'email' or 'id'
   async (getByIdentifier, val) => {
     try {
-      const q = `SELECT * FROM "user" WHERE ${getByIdentifier} = $1`;
+      const q = `SELECT *, city.name AS city FROM "user"
+                JOIN city ON city_id = city.id WHERE ${getByIdentifier} = $1`;
       return (await pool.query(q, [val])).rows[0];
     } catch {
       return;
@@ -53,7 +53,7 @@ initPassport(
 // Helper functions that return `true` if the respective field is invalid
 const invalidEmail = (email) => !/^[^@]+@[^@]+\.[^@]+$/.test(email);
 const invalidName = (name) => !/^[^ ][A-Za-zÀ-ú ]+$/.test(name);
-const invalidCity = (city) => !COVERED_CITIES.includes(city.toLowerCase());
+const invalidCity = (cities, city) => !cities.map((city) => city.name).includes(city);
 const invalidPostcode = (postcode) => !/^[A-Za-z0-9 ]{1,8}$/.test(postcode);
 const invalidStreet = (street) => !/^[0-9]+ [A-Za-z ]+$/.test(street);
 
@@ -77,7 +77,7 @@ app.get('/products/:productType?', (req, res) => {
   // `products[name] === undefined`, the `price` variable must be the original
   // price (if the item at the original code is available).
   q += ` ORDER BY ${sortBy}, "name", discounted_price DESC`;
-  console.log(req.user)
+
   try {
     pool.query(q, [], (err, qRes) => {
       if (err) console.error(err);
@@ -134,8 +134,9 @@ app.get('/products/:productType?', (req, res) => {
   }
 });
 
-app.get('/cities', (req, res) => {
-  res.send({ cities: COVERED_CITIES });
+app.get('/cities', async (req, res) => {
+  const cities = (await pool.query('SELECT "name" FROM city')).rows;
+  res.send({ cities: cities.map((city) => city.name) });
 });
 
 app.get('/product', async (req, res) => {
@@ -168,7 +169,9 @@ app.post('/accounts/signup', async (req, res) => {
     errors.password1 = 'Password is shorter than 8 characters';
   else if (password1 !== password2)
     errors.password2 = 'Passwords do not match';
-  if (invalidCity(city))
+
+  const cities = (await pool.query('SELECT * FROM city')).rows;
+  if (invalidCity(cities, city))
     errors.city = 'Your city is not in range';
   if (invalidPostcode(postcode))
     errors.postcode = 'Postcode is invalid';
@@ -184,9 +187,10 @@ app.post('/accounts/signup', async (req, res) => {
     const hash = await bcrypt.hash(password1, 10);
     // `user` is a reserved keyword, so we need to use the quotes around it.
     // Reference: https://stackoverflow.com/a/9036651/7367049
-    const q = `INSERT INTO "user" (email, hash, firstname, lastname, city, postcode, street)
+    const q = `INSERT INTO "user" (email, hash, firstname, lastname, city_id, postcode, street)
               VALUES ($1, $2, $3, $4, $5, $6, $7)`;
-    const args = [email, hash, firstname, lastname, city, postcode, street];
+    const city_id = cities.find((city2) => city2.name === city).id;
+    const args = [email, hash, firstname, lastname, city_id, postcode, street];
 
     // Try to insert the user into the database
     await pool.query(q, args, (err) => {
