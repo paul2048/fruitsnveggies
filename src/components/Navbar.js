@@ -9,7 +9,7 @@ import axios from 'axios';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { AppBar, Menu, MenuItem, Toolbar, IconButton, makeStyles, List, ListItem, ListItemText, Avatar, Container } from '@material-ui/core';
+import { AppBar, Menu, MenuItem, Toolbar, IconButton, Chip, makeStyles, List, ListItem, ListItemText, Avatar, Container, Badge } from '@material-ui/core';
 import { deepPurple } from '@material-ui/core/colors';
 
 
@@ -42,6 +42,20 @@ const useStyles = makeStyles((theme) => ({
     display: 'none',
     [theme.breakpoints.up('sm')]: {
       display: 'flex',
+    },
+  },
+  loggedInRightNav: {
+    '& > *': {
+      marginLeft: 5,
+    },
+  },
+  balance: {
+    display: 'none',
+    [theme.breakpoints.between(395, 'xs')]: {
+      display: 'inline-flex',
+    },
+    [theme.breakpoints.up(690)]: {
+      display: 'inline-flex',
     },
   },
 }));
@@ -135,10 +149,15 @@ export default function Navbar() {
 
           <div className={classes.grow} />
           {user
-            ? <div>
+            ? <div className={classes.loggedInRightNav}>
+              <Chip className={classes.balance} label={`£${user.balance}`} color="secondary" />
+
               <IconButton color="inherit">
-                <ShoppingBasketRoundedIcon fontSize="large" />
+                <Badge badgeContent={1} color="secondary">
+                  <ShoppingBasketRoundedIcon fontSize="large" />
+                </Badge>
               </IconButton>
+
               <IconButton
                 edge="start"
                 aria-label="open profile menu"

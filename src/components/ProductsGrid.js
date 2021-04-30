@@ -41,10 +41,12 @@ const useStyles = makeStyles({
 
 export default function ProductsGrid(props) {
   const sortFactors = ['Name', 'Price'];
+  const selectedSort = new URLSearchParams(window.location.search).get('sortBy');
   const [anchorEl, setAnchorEl] = useState(null);
-  const [sortBy, setSortBy] = useState(sortFactors[0]);
+  const [sortBy, setSortBy] = useState(selectedSort || sortFactors[0]);
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
   const type = props.productsType;
   const classes = useStyles();
   const open = Boolean(anchorEl);
@@ -64,12 +66,15 @@ export default function ProductsGrid(props) {
   };
 
   useEffect(() => {
-    axios.get(`http://localhost:4000/products/${type === 'all' ? '' : type}`)
-      .then((res) => setProducts(res.data))
+    axios.get(`http://localhost:4000/products/${type === 'all' ? '' : type}?sortBy=${sortBy}`)
+      .then((res) => {
+        setProducts(res.data);
+        setIsLoading(false);
+      })
       .catch((e) => console.error(e));
 
     handlePageChange('', page);
-  }, [type, page]);
+  }, [type, page, sortBy]);
 
   return (
     <Grid className={classes.grid} container spacing={4}>
@@ -111,7 +116,7 @@ export default function ProductsGrid(props) {
         </Paper>
       </Grid>
 
-      {products.map(({ name, price, sell_per_unit }) => (
+      {!isLoading && products.map(({ name, price, sell_per_unit, prices }) => (
         <Grid className={classes.gridItem} item xs={12} sm={6} key={name}>
           <Paper className={classes.gridItemPaper}>
             <Product

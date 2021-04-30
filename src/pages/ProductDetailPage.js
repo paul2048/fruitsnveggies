@@ -56,13 +56,11 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const classes = useStyles();
-  const nutrients = ['water (g)', 'protein (g)', 'fat (g)', 'carbohydrates (g)', 'fiber (g)', 'sugars (g)',
-    'calcium (mg)', 'iron (mg)', 'magnesium (mg)', 'phosphorus (mg)', 'potassium (mg)', 'sodium (g)',
-    'vitamin a (IU)', 'vitamin c (mg)', 'vitamin b1 (mg)', 'vitamin b2 (mg)', 'vitamin b3 (mg)',
-    'vitamin b5 (mg)', 'vitamin b6 (mg)', 'vitamin e (mg)'];
   const macronutrients = ['carbohydrates (g)', 'protein (g)', 'fat (g)', 'fiber (g)'];
-  const vitamins = ['vitamin a (IU)', 'vitamin c (mg)', 'vitamin b1 (mg)', 'vitamin b2 (mg)', 'vitamin b3 (mg)',
-    'vitamin b5 (mg)', 'vitamin b6 (mg)', 'vitamin e (mg)'];
+  const vitamins = ['vitamin a (IU)', 'vitamin c (mg)', 'vitamin b1 (mg)', 'vitamin b2 (mg)',
+    'vitamin b3 (mg)', 'vitamin b5 (mg)', 'vitamin b6 (mg)', 'vitamin e (mg)'];
+  const nutrients = ['water (g)', ...macronutrients, 'sugars (g)', 'calcium (mg)', 'iron (mg)',
+    'magnesium (mg)', 'phosphorus (mg)', 'potassium (mg)', 'sodium (g)', ...vitamins];
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
   const RADIAN = Math.PI / 180;
@@ -213,7 +211,7 @@ export default function ProductDetailPage() {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {macronutrients.map((entry, i) => (
+                      {macronutrients.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
@@ -230,7 +228,7 @@ export default function ProductDetailPage() {
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {vitamins.map((entry, i) => (
+                      {vitamins.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>

@@ -37,7 +37,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-// 
 const initPassport = require('./passportConfig.js');
 initPassport(
   passport,
@@ -63,32 +62,71 @@ const invalidStreet = (street) => !/^[0-9]+ [A-Za-z ]+$/.test(street);
 // (note that `productType` is optional; thus "/products" will get all products).
 app.get('/products/:productType?', (req, res) => {
   const type = req.params.productType;
+  const sortBy = req.query.sortBy.toLowerCase();
+  let q = `SELECT "name", price, sell_per_unit, discounted_price FROM product
+          JOIN item ON product.id = item.product_id`;
 
-  ///////////////// needs sell_by_date and number of available items
-  ///////////////// if the stock is limitedfrom the item tables
-  let q = 'SELECT "name", price, sell_per_unit FROM product';
-
-  // 
-  if (type === 'discounts') {
-    q = `SELECT DISTINCT ON ("name") "name", min(sell_by_date) as sell_by_date,
-        price, sell_per_unit, discounted_price FROM product
-        JOIN item ON product.id = item.product_id
-        WHERE discounted_price IS NOT NULL
-        GROUP BY sell_by_date, "name", price, sell_per_unit, discounted_price`;
-  }
-  // 
-  else if (type !== undefined) {
+  // Filter out the products that are not discounted
+  if (type === 'discounts')
+    q += ' WHERE discounted_price IS NOT NULL';
+  // Filter out the type of products that are not requested
+  else if (type !== undefined)
     q += ` WHERE is_fruit = ${type === 'fruits'}`;
-  }
 
-  // console.log(q)
-
+  // Always sort by `name` and `discounted_price` because later in the code, when
+  // `products[name] === undefined`, the `price` variable must be the original
+  // price (if the item at the original code is available).
+  q += ` ORDER BY ${sortBy}, "name", discounted_price DESC`;
+  console.log(req.user)
   try {
     pool.query(q, [], (err, qRes) => {
-      if (err) {
-        console.error(err);
+      if (err) console.error(err);
+      // When we have 3 apples and 2 bananas, we have 5 items
+      const items = qRes.rows;
+      // When we have 3 apples and 2 bananas, we have 2 products
+      const products = [];
+
+      for (item of items) {
+        const { name, price, sell_per_unit, discounted_price } = item;
+        // This is `true` only for each unique `name`
+        if (products[name] === undefined) {
+          // Each product will have the following structure:
+          // product_name: {
+          //   price: price_without_discount,
+          //   sell_per_unit: true/false
+          //   prices: {
+          //     original_price: quantity0,
+          //     discount_price1: quantity1,
+          //     discount_price2: quantity2,
+          //   }
+          // }
+          products[name] = {
+            price,
+            sell_per_unit,
+            prices: {
+              [price]: 1,
+            },
+          };
+        }
+        // If the iterated item is discounted
+        else if (discounted_price !== null) {
+          const prices = products[name]['prices'];
+          if (prices[discounted_price] === undefined)
+            prices[discounted_price] = 1;
+          else
+            prices[discounted_price] += 1;
+        }
+        // If the item is not discounted, but the product was iterated through before
+        else {
+          products[name]['prices'][price] += 1;
+        }
       }
-      res.send(qRes.rows);
+
+      // Send an array to the client, instead of an object because React
+      // can't render objects in JSX
+      productsList = Object.entries(products)
+        .map(([name, product]) => ({ name, ...product }))
+      res.send(productsList);
     });
   } catch (e) {
     console.error(e);
