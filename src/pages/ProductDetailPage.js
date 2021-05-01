@@ -2,6 +2,7 @@ import AddShoppingCartRoundedIcon from '@material-ui/icons/AddShoppingCartRounde
 import axios from 'axios';
 
 import { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import { PieChart, Pie, Cell } from 'recharts';
 import { Paper, Grid, Typography, makeStyles, Button, FormControl, OutlinedInput, withStyles } from '@material-ui/core';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@material-ui/core';
@@ -56,6 +57,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const classes = useStyles();
+  const history = useHistory();
   const macronutrients = ['carbohydrates (g)', 'protein (g)', 'fat (g)', 'fiber (g)'];
   const vitamins = ['vitamin a (IU)', 'vitamin c (mg)', 'vitamin b1 (mg)', 'vitamin b2 (mg)',
     'vitamin b3 (mg)', 'vitamin b5 (mg)', 'vitamin b6 (mg)', 'vitamin e (mg)'];
@@ -80,6 +82,22 @@ export default function ProductDetailPage() {
 
   const handleQuntity = (e) => {
     setQuantity(e.target.value);
+  };
+
+  const addToCart = (e) => {
+    const data = {
+      productId: product.id,
+      quantity: quantity,
+    };
+
+    if (localStorage.getItem('user') !== null) {
+      axios.post('http://localhost:4000/basket/add', data, { withCredentials: true })
+        .then((res) => console.log(res))
+        .catch((err) => console.error(err));
+    }
+    else {
+      history.push('/login');
+    }
   };
 
   useEffect(() => {
@@ -146,6 +164,7 @@ export default function ProductDetailPage() {
                       className={classes.addBtn}
                       variant="contained"
                       color="primary"
+                      onClick={addToCart}
                     >
                       <AddShoppingCartRoundedIcon />&nbsp;
                       Add to cart (£{(quantity * product.price).toFixed(2)})

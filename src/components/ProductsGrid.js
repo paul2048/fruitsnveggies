@@ -116,10 +116,11 @@ export default function ProductsGrid(props) {
         </Paper>
       </Grid>
 
-      {!isLoading && products.map(({ name, price, sell_per_unit, prices }) => (
+      {!isLoading && products.map(({ id, name, price, sell_per_unit, prices }) => (
         <Grid className={classes.gridItem} item xs={12} sm={6} key={name}>
           <Paper className={classes.gridItemPaper}>
             <Product
+              id={id}
               name={name}
               price={price}
               sell_per_unit={sell_per_unit}

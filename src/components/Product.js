@@ -1,6 +1,8 @@
 import AddShoppingCartRoundedIcon from '@material-ui/icons/AddShoppingCartRounded';
+import axios from 'axios';
+
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { Typography, Grid, makeStyles, Button, FormControl, OutlinedInput } from '@material-ui/core';
 
 const useStyles = makeStyles({
@@ -27,11 +29,28 @@ const useStyles = makeStyles({
 
 export default function Product(props) {
   const [quantity, setQuantity] = useState(1);
-  const { name, price, sell_per_unit } = props;
+  const { id, name, price, sell_per_unit } = props;
   const classes = useStyles();
+  const history = useHistory();
 
   const handleQuntity = (e) => {
     setQuantity(e.target.value);
+  };
+
+  const addToCart = (e) => {
+    const data = {
+      productId: id,
+      quantity: quantity,
+    };
+
+    if (localStorage.getItem('user') !== null) {
+      axios.post('http://localhost:4000/basket/add', data, { withCredentials: true })
+        .then((res) => console.log(res))
+        .catch((err) => console.error(err));
+    }
+    else {
+      history.push('/login');
+    }
   };
 
   return (
@@ -83,6 +102,7 @@ export default function Product(props) {
                 className={classes.addBtn}
                 variant="contained"
                 color="primary"
+                onClick={addToCart}
               >
                 <AddShoppingCartRoundedIcon />&nbsp; £{(quantity * price).toFixed(2)}
               </Button>

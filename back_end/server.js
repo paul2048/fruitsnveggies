@@ -1,6 +1,7 @@
 require('dotenv').config({ path: __dirname + '/../.env' });
 const express = require('express');
-const { pool } = require("./dbConfig");
+const { pool } = require('./dbConfig');
+const pgFormat = require('pg-format');
 const cors = require('cors');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
@@ -41,11 +42,14 @@ initPassport(
   // `getByIdentifier` can be 'email' or 'id'
   async (getByIdentifier, val) => {
     try {
-      const q = `SELECT *, city.name AS city FROM "user"
-                JOIN city ON city_id = city.id WHERE ${getByIdentifier} = $1`;
+      // `user` is a reserved keyword, so we need to use the quotes around it.
+      // Reference: https://stackoverflow.com/a/9036651/7367049
+      const q = `SELECT "user".id, firstname, lastname, email, hash, postcode,
+                street, balance, city_id, city.name AS city FROM "user"
+                JOIN city ON city_id = city.id WHERE "user".${getByIdentifier} = $1`;
       return (await pool.query(q, [val])).rows[0];
-    } catch {
-      return;
+    } catch (e) {
+      return e;
     }
   }
 );
@@ -63,8 +67,8 @@ const invalidStreet = (street) => !/^[0-9]+ [A-Za-z ]+$/.test(street);
 app.get('/products/:productType?', (req, res) => {
   const type = req.params.productType;
   const sortBy = req.query.sortBy.toLowerCase();
-  let q = `SELECT "name", price, sell_per_unit, discounted_price FROM product
-          JOIN item ON product.id = item.product_id`;
+  let q = `SELECT product.id, "name", price, sell_per_unit, discounted_price
+          FROM product JOIN item ON product.id = item.product_id`;
 
   // Filter out the products that are not discounted
   if (type === 'discounts')
@@ -87,11 +91,12 @@ app.get('/products/:productType?', (req, res) => {
       const products = [];
 
       for (item of items) {
-        const { name, price, sell_per_unit, discounted_price } = item;
+        const { id, name, price, sell_per_unit, discounted_price } = item;
         // This is `true` only for each unique `name`
         if (products[name] === undefined) {
           // Each product will have the following structure:
           // product_name: {
+          //   id: product_id
           //   price: price_without_discount,
           //   sell_per_unit: true/false
           //   prices: {
@@ -101,6 +106,7 @@ app.get('/products/:productType?', (req, res) => {
           //   }
           // }
           products[name] = {
+            id,
             price,
             sell_per_unit,
             prices: {
@@ -152,6 +158,34 @@ app.get('/product', async (req, res) => {
   }
 });
 
+app.post('/basket/add', (req, res) => {
+  const productId = req.body.productId;
+  const quantity = req.body.quantity;
+  // Out of the cheapest discounted items, get the item with the soonest `sell_by_date`
+  let q = `SELECT item.id FROM item
+          WHERE product_id = $1 AND transaction_id IS NULL
+          ORDER BY discounted_price, sell_by_date LIMIT $2`;
+
+  pool.query(q, [productId, quantity], (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.send(err);
+    }
+    const items = data.rows;
+    const userId = req.user.id;
+    const basket = items.map((item) => [userId, item.id]);
+
+    console.log(basket)
+    q = 'INSERT INTO basket (user_id, item_id) VALUES %L';
+    pool.query(pgFormat(q, basket), [], (err) => {
+      if (err) {
+        console.error(err);
+        return res.send(err);
+      }
+    });
+  });
+});
+
 app.post('/accounts/signup', async (req, res) => {
   // Destructure the form's data
   const { firstname, lastname, email, password1, password2, city, postcode, street } = req.body;
@@ -185,8 +219,6 @@ app.post('/accounts/signup', async (req, res) => {
 
   try {
     const hash = await bcrypt.hash(password1, 10);
-    // `user` is a reserved keyword, so we need to use the quotes around it.
-    // Reference: https://stackoverflow.com/a/9036651/7367049
     const q = `INSERT INTO "user" (email, hash, firstname, lastname, city_id, postcode, street)
               VALUES ($1, $2, $3, $4, $5, $6, $7)`;
     const city_id = cities.find((city2) => city2.name === city).id;
@@ -215,6 +247,7 @@ app.post('/accounts/signup', async (req, res) => {
 
 app.post('/accounts/login', passport.authenticate('local'), (req, res) => {
   const userInfo = {
+    id: req.user.id,
     balance: req.user.balance,
     city: req.user.city,
     email: req.user.email,

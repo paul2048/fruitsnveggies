@@ -29,9 +29,12 @@ const init = (passport, getUserBy) => {
   passport.deserializeUser(async (id, done) => {
     try {
       const user = await getUserBy('id', id);
+
       const userInfo = {
+        id: user.id,
         balance: user.balance,
         city: user.city,
+        city_id: user.city_id,
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,

@@ -7,14 +7,16 @@ import VegetablesPage from './pages/VegetablesPage';
 import DiscountsPage from './pages/DiscountsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import AllPage from './pages/AllPage';
+import BasketPage from './pages/BasketPage';
 import AboutUsPage from './pages/AboutUsPage';
 import SignPage from './pages/SignPage';
 import Footer from './components/Footer';
 
 import axios from 'axios';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, Redirect } from 'react-router-dom';
 import { Container, ThemeProvider } from '@material-ui/core';
 import { createMuiTheme } from '@material-ui/core/styles';
+import { useState } from 'react';
 
 const theme = createMuiTheme({
   typography: {
@@ -60,13 +62,27 @@ const theme = createMuiTheme({
 });
 
 export default function App() {
-  window.addEventListener('storage', (e) => {
-    console.log(e)
+  const [auth, setAuth] = useState(false);
+
+  window.addEventListener('storage', () => {
     if (localStorage.getItem('user') === null) {
       axios.get('http://localhost:4000/accounts/logout');
       window.location.reload();
     }
   }, false);
+
+  axios.get('http://localhost:4000/user', { withCredentials: true })
+    .then((res) => {
+      if (res.data === '' && localStorage.getItem('user') !== null) {
+        localStorage.removeItem('user');
+        axios.get('http://localhost:4000/accounts/logout');
+        window.location.reload();
+      }
+      else if (res.data !== '') {
+        setAuth(true);
+      }
+    })
+    .catch((err) => console.log(err));
 
   return (
     <Container maxWidth="md" className="App">
@@ -80,6 +96,7 @@ export default function App() {
             <Route exact path="/product" component={ProductDetailPage} />
             <Route exact path="/discounts" component={DiscountsPage} />
             <Route exact path="/all" component={AllPage} />
+            <Route exact path="/basket" render={() => (auth ? (<BasketPage />) : (<Redirect to="/login" />))} />
             <Route exact path="/about" component={AboutUsPage} />
             <Route exact path="/login" component={SignPage} />
           </Switch>

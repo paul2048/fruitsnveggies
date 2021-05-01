@@ -9,7 +9,7 @@ import axios from 'axios';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { AppBar, Menu, MenuItem, Toolbar, IconButton, Chip, makeStyles, List, ListItem, ListItemText, Avatar, Container, Badge } from '@material-ui/core';
+import { AppBar, Menu, MenuItem, Toolbar, IconButton, Chip, makeStyles, List, ListItem, ListItemText, Avatar, Container } from '@material-ui/core';
 import { deepPurple } from '@material-ui/core/colors';
 
 
@@ -152,11 +152,11 @@ export default function Navbar() {
             ? <div className={classes.loggedInRightNav}>
               <Chip className={classes.balance} label={`£${user.balance}`} color="secondary" />
 
-              <IconButton color="inherit">
-                <Badge badgeContent={1} color="secondary">
+              <Link className={classes.linkText} to="/basket">
+                <IconButton color="inherit">
                   <ShoppingBasketRoundedIcon fontSize="large" />
-                </Badge>
-              </IconButton>
+                </IconButton>
+              </Link>
 
               <IconButton
                 edge="start"
