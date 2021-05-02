@@ -141,6 +141,7 @@ app.get('/products/:productType?', (req, res) => {
 });
 
 app.get('/cities', async (req, res) => {
+  // Get the cities' names
   const cities = (await pool.query('SELECT "name" FROM city')).rows;
   res.send({ cities: cities.map((city) => city.name) });
 });
@@ -158,24 +159,90 @@ app.get('/product', async (req, res) => {
   }
 });
 
-app.post('/basket/add', (req, res) => {
-  const productId = req.body.productId;
-  const quantity = req.body.quantity;
-  // Out of the cheapest discounted items, get the item with the soonest `sell_by_date`
-  let q = `SELECT item.id FROM item
-          WHERE product_id = $1 AND transaction_id IS NULL
-          ORDER BY discounted_price, sell_by_date LIMIT $2`;
+app.get('/basket', (req, res) => {
+  // If the user is not logged in
+  if (!req.user) {
+    return res.sendStatus(403);
+  }
 
-  pool.query(q, [productId, quantity], (err, data) => {
+  const userId = req.user.id;
+  // Select the items from the basket
+  const q = `SELECT "name", price, discounted_price, sell_per_unit FROM basket
+            JOIN item ON item_id = item.id
+            JOIN product ON product_id = product.id
+            WHERE user_id = $1`;
+  
+  pool.query(q, [userId], (err, data) => {
     if (err) {
       console.error(err);
       return res.send(err);
     }
     const items = data.rows;
-    const userId = req.user.id;
-    const basket = items.map((item) => [userId, item.id]);
+    // The basket is made out of objects the have the the following format:
+    // { name, sell_per_unit, price, quantity }. Each object has a unique pair
+    // of `name` and `price`.  
+    const basket = [];
+    // This object maps a string made out of a unique pair of name and price
+    // (`name_price`) to the index of the where the item with that name and price
+    // in the `basket` index. This object achieves O(n) insead of O(n^2) in the
+    // "for" loop below. 
+    const basketRows = {length: 0};
 
-    console.log(basket)
+    // Iterate over each item in the basket
+    for ({name, price, discounted_price, sell_per_unit} of items) {
+      price = discounted_price || price;
+      const basketRowKey = `${name}_${price}`;
+      const basketIndex = basketRows[basketRowKey];
+
+      // If the item that costs `price` is in `basketRows`
+      if (basketIndex) {
+        basket[basketIndex].quantity += 1;
+      }
+      else {
+        basket.push({ name, sell_per_unit, price, quantity: 1});
+        basketRows[basketRowKey] = (basketRows.length)++;
+      }
+    }
+
+    // Sort the basket by item name and send it to the client
+    res.send(basket.sort((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+    }));
+  });
+});
+
+app.post('/basket/add', async (req, res) => {
+  // If the user is not logged in
+  if (!req.user) {
+    return res.sendStatus(403);
+  }
+
+  const productId = req.body.productId;
+  const userId = req.user.id;
+  const quantity = req.body.quantity;
+  // Out of the cheapest discounted items, get the item with the soonest `sell_by_date`
+  let q = `SELECT item.id FROM item
+          WHERE product_id = $1 AND transaction_id IS NULL
+          AND item.id NOT IN (SELECT item_id FROM basket WHERE user_id = $2)
+          ORDER BY discounted_price, sell_by_date LIMIT $3`;
+
+  pool.query(q, [productId, userId, quantity], (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.send(err);
+    }
+
+    const items = data.rows;
+    const basket = items.map((item) => [userId, item.id]);
+  
+    if (items.length === 0) {
+      return res.status(422).send('The product is not currently in stock');
+    }
+    else if (items.length < quantity) {
+      return res.status(422).send('You are trying to add more items than the number of available items');
+    }
+
     q = 'INSERT INTO basket (user_id, item_id) VALUES %L';
     pool.query(pgFormat(q, basket), [], (err) => {
       if (err) {
@@ -231,7 +298,7 @@ app.post('/accounts/signup', async (req, res) => {
         // If the email is already taken
         if (err.code == PG_ERROR_CODES.duplicateKeys) {
           errors.email = 'Email address is already taken';
-          return res.status(422).send(errors)
+          return res.status(422).send(errors);
         }
         // Print any other errors
         console.error(err);

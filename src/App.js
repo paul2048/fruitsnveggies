@@ -7,6 +7,7 @@ import VegetablesPage from './pages/VegetablesPage';
 import DiscountsPage from './pages/DiscountsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import AllPage from './pages/AllPage';
+import ProfilePage from './pages/ProfilePage';
 import BasketPage from './pages/BasketPage';
 import AboutUsPage from './pages/AboutUsPage';
 import SignPage from './pages/SignPage';
@@ -29,12 +30,12 @@ const theme = createMuiTheme({
       fontWeight: 800,
       textShadow: '1px 1px 1px seashell',
       textTransform: 'capitalize',
-    }
+    },
   },
   palette: {
     primary: {
       main: '#70d14f',
-    }
+    },
   },
   shape: {
     borderRadius: 50,
@@ -46,13 +47,13 @@ const theme = createMuiTheme({
       },
       text: {
         textTransform: 'none',
-      }
+      },
     },
     MuiFormControl: {
       root: {
         minWidth: 210.4,
-      }
-    }
+      },
+    },
   },
   props: {
     MuiPaper: {
@@ -62,7 +63,7 @@ const theme = createMuiTheme({
 });
 
 export default function App() {
-  const [auth, setAuth] = useState(false);
+  const [auth, setAuth] = useState(localStorage.getItem('user') !== null);
 
   window.addEventListener('storage', () => {
     if (localStorage.getItem('user') === null) {
@@ -96,6 +97,7 @@ export default function App() {
             <Route exact path="/product" component={ProductDetailPage} />
             <Route exact path="/discounts" component={DiscountsPage} />
             <Route exact path="/all" component={AllPage} />
+            <Route exact path="/profile" render={() => (auth ? (<ProfilePage />) : (<Redirect to="/login" />))} />
             <Route exact path="/basket" render={() => (auth ? (<BasketPage />) : (<Redirect to="/login" />))} />
             <Route exact path="/about" component={AboutUsPage} />
             <Route exact path="/login" component={SignPage} />

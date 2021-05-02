@@ -84,7 +84,7 @@ export default function ProductDetailPage() {
     setQuantity(e.target.value);
   };
 
-  const addToCart = (e) => {
+  const addToCart = () => {
     const data = {
       productId: product.id,
       quantity: quantity,
