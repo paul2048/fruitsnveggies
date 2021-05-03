@@ -22,14 +22,12 @@ export default function SignUpForm() {
       .then((resp) => setCitiesArr(resp.data.cities));
 
   const handleFormErrors = (err) => {
-    console.log(err.response)
     setFormErrors(err.response.data)
   };
 
   const signUpUser = (e) => {
     // Prevent the page from reloading
     e.preventDefault();
-    console.log(formErrors)
 
     // Object that holds the data of the form
     const data = {
@@ -45,10 +43,7 @@ export default function SignUpForm() {
 
     // Send a request to the server to sign up the user
     axios.post('http://localhost:4000/accounts/signup', data, { withCredentials: true })
-      .then((res) => {
-        console.log(res)
-        window.location.reload();
-      })
+      .then((res) => window.location.reload())
       .catch((err) => handleFormErrors(err));
   }
 
@@ -176,7 +171,8 @@ export default function SignUpForm() {
             >
               <MenuItem value=""></MenuItem>
               {citiesArr.map((city, i) =>
-                <MenuItem key={i} value={city}>{city}</MenuItem>)}
+                <MenuItem key={i} value={city}>{city}</MenuItem>
+              )}
             </Select>
             {formErrors?.city &&
               <FormHelperText>{formErrors.city}</FormHelperText>}

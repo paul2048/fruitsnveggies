@@ -37,7 +37,7 @@ export default function Product(props) {
     setQuantity(e.target.value);
   };
 
-  const addToCart = (e) => {
+  const addToCart = () => {
     const data = {
       productId: id,
       quantity: quantity,
@@ -46,7 +46,7 @@ export default function Product(props) {
     if (localStorage.getItem('user') !== null) {
       axios.post('http://localhost:4000/basket/add', data, { withCredentials: true })
         .then((res) => console.log(res))
-        .catch((err) => console.error(err));
+        .catch((err) => alert(err.response.data));
     }
     else {
       history.push('/login');

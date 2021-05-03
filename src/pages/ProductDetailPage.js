@@ -93,7 +93,7 @@ export default function ProductDetailPage() {
     if (localStorage.getItem('user') !== null) {
       axios.post('http://localhost:4000/basket/add', data, { withCredentials: true })
         .then((res) => console.log(res))
-        .catch((err) => console.error(err));
+        .catch((err) => alert(err.response.data));
     }
     else {
       history.push('/login');
@@ -106,7 +106,7 @@ export default function ProductDetailPage() {
         setProduct(res.data);
         setIsLoading(false);
       })
-      .catch((e) => console.error(e));
+      .catch((err) => console.error(err));
   }, []);
 
   return (!isLoading &&

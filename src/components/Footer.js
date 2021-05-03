@@ -8,7 +8,7 @@ import { Paper, makeStyles, Typography, TextField, Button, FormControl, Grid } f
 const useStyles = makeStyles({
   footer: {
     margin: "32px 0px",
-    padding: 50,
+    padding: 20,
     textAlign: 'center',
   },
   newsletterForm: {
@@ -81,7 +81,7 @@ export default function Footer() {
                   variant="contained"
                   color="primary"
                 >
-                  <EmailRoundedIcon /> Subscribe
+                  <EmailRoundedIcon /> &nbsp;Subscribe
                 </Button>
               </Grid>
             </Grid>

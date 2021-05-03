@@ -171,7 +171,7 @@ app.get('/basket', (req, res) => {
             JOIN item ON item_id = item.id
             JOIN product ON product_id = product.id
             WHERE user_id = $1`;
-  
+
   pool.query(q, [userId], (err, data) => {
     if (err) {
       console.error(err);
@@ -190,16 +190,23 @@ app.get('/basket', (req, res) => {
 
     // Iterate over each item in the basket
     for ({name, price, discounted_price, sell_per_unit} of items) {
-      price = discounted_price || price;
-      const basketRowKey = `${name}_${price}`;
+      const sellingPrice = discounted_price || price;
+      const basketRowKey = `${name}_${sellingPrice}`;
       const basketIndex = basketRows[basketRowKey];
 
-      // If the item that costs `price` is in `basketRows`
-      if (basketIndex) {
+      // If the item that costs `sellingPrice` is in `basketRows`
+      if (basketIndex !== undefined) {
         basket[basketIndex].quantity += 1;
       }
       else {
-        basket.push({ name, sell_per_unit, price, quantity: 1});
+        const basketRow = {name, sell_per_unit, price, quantity: 1};
+
+        // Add `discounted_price` to the row if the item is discounted
+        if (sellingPrice !== price) {
+          basketRow.discounted_price = discounted_price;
+        }
+
+        basket.push(basketRow);
         basketRows[basketRowKey] = (basketRows.length)++;
       }
     }
@@ -243,6 +250,7 @@ app.post('/basket/add', async (req, res) => {
       return res.status(422).send('You are trying to add more items than the number of available items');
     }
 
+    // Insert 1 or more items into the user's basket
     q = 'INSERT INTO basket (user_id, item_id) VALUES %L';
     pool.query(pgFormat(q, basket), [], (err) => {
       if (err) {
@@ -251,6 +259,47 @@ app.post('/basket/add', async (req, res) => {
       }
     });
   });
+});
+
+app.post('/basket/remove', (req, res) => {
+  // If the user is not logged in
+  if (!req.user) {
+    return res.sendStatus(403);
+  }
+
+  const { name, discounted_price } = req.body;
+  const userId = req.user.id;
+  let q = `DELETE FROM basket WHERE user_id = $1 AND item_id IN
+          (SELECT item_id FROM basket
+          JOIN item ON item_id = item.id
+          JOIN product ON product_id = product.id
+          WHERE user_id = $1 AND product."name" = $2
+          AND discounted_price ${discounted_price ? '= $3)' : 'IS NULL)'}`;
+
+  let args = [userId, name];
+  if (discounted_price) {
+    args.push(discounted_price);
+  }
+
+  pool.query(q, args, (err) => {
+    if (err) {
+      console.error(err);
+    }
+    res.sendStatus(200);
+  });
+});
+
+app.post('/order', (req, res) => {
+  // If the user is not logged in
+  if (!req.user) {
+    return res.sendStatus(403);
+  }
+
+  const { ccName, ccNumber, ccDate, cvc, confirmBitcoin } = req.body;
+
+  return res.status(422).send({ ccName: 'yooo' });
+
+  res.send('Your order was placed successfully');
 });
 
 app.post('/accounts/signup', async (req, res) => {
