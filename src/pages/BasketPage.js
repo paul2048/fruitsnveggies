@@ -2,7 +2,9 @@ import RemoveShoppingCartRoundedIcon from '@material-ui/icons/RemoveShoppingCart
 import ShopRoundedIcon from '@material-ui/icons/ShopRounded';
 
 import axios from 'axios';
-import { Paper, MenuItem, makeStyles, withStyles, Table, TableBody, TableHead, TableRow, TableCell, TableContainer, Button, Typography, Grid } from '@material-ui/core';
+import { Link } from 'react-router-dom';
+import { Paper, MenuItem, makeStyles, withStyles, Button, Typography, Tooltip, Grid, Chip } from '@material-ui/core';
+import { Table, TableBody, TableHead, TableRow, TableCell, TableContainer, TableFooter } from '@material-ui/core';
 import { FormControl, InputLabel, Select, FormHelperText, FormControlLabel, TextField, Checkbox } from '@material-ui/core';
 import { useEffect, useState } from 'react';
 
@@ -25,6 +27,9 @@ const useStyles = makeStyles((theme) => ({
       width: 36,
     },
   },
+  balance: {
+    cursor: 'pointer',
+  },
   orderBtn: {
     width: '100%',
   },
@@ -40,18 +45,19 @@ const StyledTableRow = withStyles(() => ({
 }))(TableRow);
 
 export default function BasketPage() {
-  const [basket, setBasket] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [basket, setBasket] = useState([]);
   const [payMethod, setPayMethod] = useState('card');
   const [ccName, setCcName] = useState('');
   const [ccNumber, setCcNumber] = useState('');
-  const [ccDate, setCcDate] = useState(new Date().toLocaleDateString('swe-SW'));
+  const [ccDate, setCcDate] = useState(new Date().toLocaleDateString('swe-SW').slice(0,7));
   const [cvc, setCvc] = useState('');
   const [confirmBitcoin, setConfirmBitcoin] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const classes = useStyles();
 
   useEffect(() => {
+    // Get the items in the user's basket and store them in the `basket` state
     axios.get('http://localhost:4000/basket', { withCredentials: true })
       .then((res) => {
         setBasket(res.data);
@@ -59,20 +65,6 @@ export default function BasketPage() {
       })
       .catch((err) => console.error(err));
   }, []);
-
-  const handleRemoveBasket = (name, price, discounted_price, i) => {
-    const data = { name, price, discounted_price };
-    axios.post('http://localhost:4000/basket/remove', data, { withCredentials: true })
-      .then(() => {
-        console.log(basket.slice(0, i))
-        console.log(basket.slice(i + 1))
-        const newBasket = [
-          ...basket.slice(0, i),
-          ...basket.slice(i + 1)];
-        setBasket(newBasket);
-      })
-      .catch((err) => console.error(err));
-  };
 
   const handleFormErrors = (err) => {
     setFormErrors(err.response.data);
@@ -87,7 +79,14 @@ export default function BasketPage() {
   };
 
   const handleCcNumber = (e) => {
-    setCcNumber(e.target.value);
+    // Format the card number as "DDDD DDDD DDDD DDDD", where "D" is any digit 
+    const regex = /^(\d{0,4})(\d{0,4})(\d{0,4})(\d{0,4})$/g;
+    const onlyNumbers = e.target.value.replace(/[^\d]/g, '');
+
+    const final = onlyNumbers.replace(regex, (regex, $1, $2, $3, $4) =>
+      [$1, $2, $3, $4].filter((group) => !!group).join(' '));
+
+    setCcNumber(final);
   };
 
   const handleCcDate = (e) => {
@@ -102,12 +101,40 @@ export default function BasketPage() {
     setConfirmBitcoin(e.target.checked);
   }
 
+  const basketPrice = () => {
+    // Return the total price of the basket items
+    return basket.reduce((acc, { price, quantity }) => {
+      return acc + (+price * quantity);
+    }, 0).toFixed(2);
+  }
+
+  const hasEnoughBalance = () => {
+    const balance = +JSON.parse(localStorage.getItem('user')).balance;
+    return balance < basketPrice();
+  }
+
+  const removeFromBasket = (name, price, discounted_price, i) => {
+    const data = { name, price, discounted_price };
+    axios.post('http://localhost:4000/basket/remove', data, { withCredentials: true })
+      .then(() => {
+        // Remove the row from the table
+        const newBasket = [
+          ...basket.slice(0, i),
+          ...basket.slice(i + 1)];
+        setBasket(newBasket);
+      })
+      .catch((err) => console.error(err));
+  };
+
   const placeOrder = (e) => {
     e.preventDefault();
 
-    const data = { ccName, ccNumber, ccDate, cvc };
+    const data = { payMethod, ccName, ccNumber, ccDate, cvc, confirmBitcoin };
     axios.post('http://localhost:4000/order', data, { withCredentials: true })
-      .then((res) => console.log(res))
+      .then((res) => {
+        setBasket([]);
+        alert(res.data);
+      })
       .catch((err) => handleFormErrors(err));
   };
 
@@ -131,6 +158,7 @@ export default function BasketPage() {
                   <TableCell align="right"></TableCell>
                 </StyledTableRow>
               </TableHead>
+
               <TableBody>
                 {basket.map(({ name, sell_per_unit, price, discounted_price, quantity }, i) => (
                   <StyledTableRow key={`${name}_${price}_${discounted_price}`}>
@@ -152,7 +180,7 @@ export default function BasketPage() {
                         size="large"
                         variant="outlined"
                         color="secondary"
-                        onClick={() => handleRemoveBasket(name, price, discounted_price, i)}
+                        onClick={() => removeFromBasket(name, price, discounted_price, i)}
                       >
                         <RemoveShoppingCartRoundedIcon />
                       </Button>
@@ -160,13 +188,21 @@ export default function BasketPage() {
                   </StyledTableRow>
                 ))}
               </TableBody>
+
+              <TableFooter>
+                <StyledTableRow>
+                  <TableCell align="center" colSpan={6}>
+                    <Typography variant="h6">Total: £{basketPrice()}</Typography>
+                  </TableCell>
+                </StyledTableRow>
+              </TableFooter>
             </Table>
           </TableContainer>
         </Grid>
 
         <Grid item xs={12} sm={6}>
           <form method="POST" onSubmit={placeOrder}>
-            <Grid container spacing={2} alignItems="center" direction="column">
+            <Grid container spacing={10} alignItems="center" direction="column">
               <Grid item>
                 <FormControl variant="outlined" error={formErrors?.city !== undefined}>
                   <InputLabel>Payment method</InputLabel>
@@ -178,7 +214,8 @@ export default function BasketPage() {
                     error={formErrors?.payMethod !== undefined}
                   >
                     <MenuItem value="card">Card</MenuItem>
-                    <MenuItem value="bitcoin">Bitcoin</MenuItem>
+                    <MenuItem value="balance">Balance</MenuItem>
+                    <MenuItem value="bitcoin">Bitcoin (BTC)</MenuItem>
                   </Select>
                   {formErrors?.city && <FormHelperText>{formErrors.city}</FormHelperText>}
                 </FormControl>
@@ -199,7 +236,7 @@ export default function BasketPage() {
                           <FormHelperText>{formErrors.ccName}</FormHelperText>}
                       </FormControl>
                     </Grid>
-                    
+
                     <Grid item>
                       <FormControl error={formErrors?.ccNumber !== undefined}>
                         <TextField
@@ -207,6 +244,7 @@ export default function BasketPage() {
                           onChange={handleCcNumber}
                           label="Card number"
                           variant="outlined"
+                          InputProps={{ inputProps: { maxLength: 19 }}}
                           error={formErrors?.ccNumber !== undefined}
                         />
                         {formErrors?.ccNumber &&
@@ -219,9 +257,9 @@ export default function BasketPage() {
                         <TextField
                           value={ccDate}
                           onChange={handleCcDate}
-                          label="Card date"
+                          label="Card expiry date"
                           variant="outlined"
-                          type="date"
+                          type="month"
                           error={formErrors?.ccDate !== undefined}
                         />
                         {formErrors?.ccDate &&
@@ -245,12 +283,25 @@ export default function BasketPage() {
                       </FormControl>
                     </Grid>
                   </Grid>
+                : payMethod === 'balance'
+                ? <Typography variant="h6">Your balance is &nbsp;
+                    <Link to="/profile">
+                      <Tooltip title="Add more funds">
+                        <Chip
+                          className={classes.balance}
+                          label={`£${JSON.parse(localStorage.getItem('user')).balance}`}
+                          color="secondary" />
+                      </Tooltip>
+                    </Link>
+                  </Typography>
                 : <Grid container spacing={2} alignItems="center" direction="column">
                     <Grid item>
                       <img
                         src={require('../images/bitcoin_wallet.png').default}
                         alt="bitcoin wallet" />
                     </Grid>
+
+                    <Grid item><b>1G3SZMP3FkgsATANikgYiLCtqdEqiMUSEP</b></Grid>
 
                     <Grid item>
                       <FormControl error={formErrors?.confirmBitcoin !== undefined}>
@@ -273,6 +324,7 @@ export default function BasketPage() {
                   color="primary"
                   size="large"
                   type="submit"
+                  disabled={payMethod === 'balance' && hasEnoughBalance()}
                 >
                   <ShopRoundedIcon /> &nbsp;Place order
                 </Button>

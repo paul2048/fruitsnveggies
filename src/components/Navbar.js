@@ -9,7 +9,7 @@ import axios from 'axios';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { AppBar, Menu, MenuItem, Toolbar, IconButton, Chip, makeStyles, List, ListItem, ListItemText, Avatar, Container } from '@material-ui/core';
+import { AppBar, Menu, MenuItem, Toolbar, IconButton, Chip, makeStyles, List, ListItem, ListItemText, Avatar, Container, Tooltip } from '@material-ui/core';
 import { deepPurple } from '@material-ui/core/colors';
 
 
@@ -47,9 +47,13 @@ const useStyles = makeStyles((theme) => ({
   loggedInRightNav: {
     '& > *': {
       marginLeft: 5,
+      [theme.breakpoints.between('xs', 620)]: {
+        marginLeft: 0,
+      }
     },
   },
   balance: {
+    cursor: 'pointer',
     display: 'none',
     [theme.breakpoints.between(395, 'xs')]: {
       display: 'inline-flex',
@@ -150,7 +154,14 @@ export default function Navbar() {
           <div className={classes.grow} />
           {user
             ? <div className={classes.loggedInRightNav}>
-              <Chip className={classes.balance} label={`£${user.balance}`} color="secondary" />
+              <Link className={classes.linkText} to="/profile">
+                <Tooltip title="Add more funds">
+                  <Chip
+                    className={classes.balance}
+                    label={`£${user.balance}`}
+                    color="secondary" />
+                </Tooltip>
+              </Link>
 
               <Link className={classes.linkText} to="/basket">
                 <IconButton color="inherit">

@@ -8,6 +8,9 @@ const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const initPassport = require('./passportConfig.js');
+const cardValidator = require('card-validator');
+const getUserBasket = require('./getUserBasket');
 const app = express();
 
 // The port on which the app listents to
@@ -36,7 +39,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-const initPassport = require('./passportConfig.js');
 initPassport(
   passport,
   // `getByIdentifier` can be 'email' or 'id'
@@ -159,64 +161,20 @@ app.get('/product', async (req, res) => {
   }
 });
 
-app.get('/basket', (req, res) => {
+app.get('/basket', async (req, res) => {
   // If the user is not logged in
   if (!req.user) {
     return res.sendStatus(403);
   }
 
-  const userId = req.user.id;
-  // Select the items from the basket
-  const q = `SELECT "name", price, discounted_price, sell_per_unit FROM basket
-            JOIN item ON item_id = item.id
-            JOIN product ON product_id = product.id
-            WHERE user_id = $1`;
+  // Get the user's basket
+  const basket = await getUserBasket(req.user.id);
 
-  pool.query(q, [userId], (err, data) => {
-    if (err) {
-      console.error(err);
-      return res.send(err);
-    }
-    const items = data.rows;
-    // The basket is made out of objects the have the the following format:
-    // { name, sell_per_unit, price, quantity }. Each object has a unique pair
-    // of `name` and `price`.  
-    const basket = [];
-    // This object maps a string made out of a unique pair of name and price
-    // (`name_price`) to the index of the where the item with that name and price
-    // in the `basket` index. This object achieves O(n) insead of O(n^2) in the
-    // "for" loop below. 
-    const basketRows = {length: 0};
-
-    // Iterate over each item in the basket
-    for ({name, price, discounted_price, sell_per_unit} of items) {
-      const sellingPrice = discounted_price || price;
-      const basketRowKey = `${name}_${sellingPrice}`;
-      const basketIndex = basketRows[basketRowKey];
-
-      // If the item that costs `sellingPrice` is in `basketRows`
-      if (basketIndex !== undefined) {
-        basket[basketIndex].quantity += 1;
-      }
-      else {
-        const basketRow = {name, sell_per_unit, price, quantity: 1};
-
-        // Add `discounted_price` to the row if the item is discounted
-        if (sellingPrice !== price) {
-          basketRow.discounted_price = discounted_price;
-        }
-
-        basket.push(basketRow);
-        basketRows[basketRowKey] = (basketRows.length)++;
-      }
-    }
-
-    // Sort the basket by item name and send it to the client
-    res.send(basket.sort((a, b) => {
-      if (a.name < b.name) return -1;
-      if (a.name > b.name) return 1;
-    }));
-  });
+  // Sort the basket by item name and send it to the client
+  res.send(basket.sort((a, b) => {
+    if (a.name < b.name) return -1;
+    if (a.name > b.name) return 1;
+  }));
 });
 
 app.post('/basket/add', async (req, res) => {
@@ -289,17 +247,102 @@ app.post('/basket/remove', (req, res) => {
   });
 });
 
-app.post('/order', (req, res) => {
+app.post('/order', async (req, res) => {
   // If the user is not logged in
   if (!req.user) {
     return res.sendStatus(403);
   }
 
-  const { ccName, ccNumber, ccDate, cvc, confirmBitcoin } = req.body;
+  const { payMethod, ccName, ccNumber, ccDate, cvc, confirmBitcoin } = req.body;
+  const userId = req.user.id;
+  const basket = await getUserBasket(userId);
+  const errors = {};
+  let q = `
+    WITH new_transaction AS (
+      INSERT INTO "transaction" ("type")
+      VALUES ($1)
+      RETURNING id
+    ),
+    basket_items AS (
+      DELETE FROM basket where user_id = $2 AND item_id IN (
+        SELECT item_id FROM basket
+        JOIN item ON item_id = item.id
+        JOIN product ON product_id = product.id
+        WHERE user_id = $2
+      )
+      RETURNING item_id
+    )
+    UPDATE item SET transaction_id = new_transaction.id
+    FROM new_transaction
+    WHERE item.id IN (SELECT item_id FROM basket_items)
+  `;
 
-  return res.status(422).send({ ccName: 'yooo' });
+  // 1. Insert a new transaction row
+  // 2. Set the transaction id of each item in the user's basket to be the id
+  //    of the newly inserted transaction row
+  // 3. Remove the items from the user's basket
+  const makeTransaction = (successMsg) => {
+    pool.query(q, [payMethod, userId], (err) => {
+      if (err) {
+        console.error(err);
+      }
 
-  res.send('Your order was placed successfully');
+      res.send(successMsg);
+    });
+  }
+
+  if (payMethod === 'card') {
+    if (invalidName(ccName))
+      errors.ccName = 'Invalid name';
+    if (!cardValidator.number(ccNumber).isValid)
+      errors.ccNumber = 'Invalid card number';
+    if (new Date(ccDate) < new Date())
+      errors.ccDate = 'The card is expired';
+    if (!/^\d{3}$/.test(cvc))
+      errors.cvc = 'The CVC must be a 3 digits string';
+
+    if (Object.entries(errors).length > 0) {
+      return res.status(422).send(errors);
+    }
+
+    const successMsg = 'Your order was placed successfully';
+    makeTransaction(successMsg);
+  }
+  else if (payMethod === 'balance') {
+    const balance = req.user.balance;
+    // The total price of the items in the user's basket
+    const basketPrice = basket.reduce((acc, { price, quantity }) => {
+      return acc + (+price * quantity);
+    }, 0);
+
+    if (+balance < basketPrice) {
+      return res.status(422).send('Insufficient funds');
+    }
+
+    // Subtract `basketPrice` from the user's balance
+    const newBalance = (+balance - +basketPrice).toFixed(2);
+    q = 'UPDATE "user" SET balance = $1 WHERE id = $2';
+    await pool.query(q, [newBalance, userId]);
+
+    const successMsg = 'Your order was placed successfully';
+    makeTransaction(successMsg);
+  }
+  else if (payMethod === 'bitcoin') {
+    if (confirmBitcoin !== true)
+      errors.confirmBitcoin = 'You must send the funds before proceeding';
+
+    if (Object.entries(errors).length > 0) {
+      return res.status(422).send(errors);
+    }
+
+    const successMsg = 'We will start the delivery process once your Bitcoins arrive to use. The items in this order cannot be ordered by other users for the next 45 minutes.';
+    makeTransaction(successMsg);
+  }
+  else {
+    // If the payment method isn't 'bitcoin', 'card', nor 'balance'
+    errors.payMethod = `We do not support "${payMethod}" payments`;
+    res.status(422).send(errors);
+  }
 });
 
 app.post('/accounts/signup', async (req, res) => {
@@ -329,9 +372,8 @@ app.post('/accounts/signup', async (req, res) => {
     errors.street = 'Street is invalid';
 
   // If any form error was found
-  if (Object.entries(errors).length > 0) {
+  if (Object.entries(errors).length > 0)
     return res.status(422).send(errors);
-  }
 
   try {
     const hash = await bcrypt.hash(password1, 10);

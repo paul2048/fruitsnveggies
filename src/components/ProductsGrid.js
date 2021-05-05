@@ -12,10 +12,9 @@ const useStyles = makeStyles({
     padding: 10,
     textAlign: 'center',
     flexDirection: 'column',
-  },
-  sortPaper: {
-    padding: 10,
-    textAlign: 'right',
+    '& > div': {
+      height: '100%',
+    },
   },
   gridItem: {
     '& *': {
@@ -80,39 +79,41 @@ export default function ProductsGrid(props) {
     <Grid className={classes.grid} container spacing={4}>
       <Grid item xs={12}>
         <Paper className={classes.headerPaper}>
-          <Typography variant="h2">
-            {type}
-          </Typography>
-        </Paper>
-      </Grid>
+          <Grid container justify="space-around" direction="column">
+            <Grid item>
+              <Typography variant="h2">
+                {type}
+              </Typography>
+            </Grid>
 
-      <Grid item xs={12}>
-        <Paper className={classes.sortPaper}>
-          <Button variant="contained" onClick={handleMenu}>
-            Sorting by {sortBy} <SortRoundedIcon />
-          </Button>
+            <Grid item>
+              <Button variant="contained" onClick={handleMenu}>
+                Sorting by {sortBy} <SortRoundedIcon />
+              </Button>
 
-          <Menu
-            id="menu-appbar"
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={open}
-            onClose={handleClose}
-          >
-            {sortFactors.map((factor) => (
-              <MenuItem onClick={handleClose} key={factor}>
-                {factor}
-              </MenuItem>
-            ))}
-          </Menu>
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                open={open}
+                onClose={handleClose}
+              >
+                {sortFactors.map((factor) => (
+                  <MenuItem onClick={handleClose} key={factor}>
+                    {factor}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Grid>
+          </Grid>
         </Paper>
       </Grid>
 
