@@ -33,7 +33,7 @@ export default function Product(props) {
   const classes = useStyles();
   const history = useHistory();
 
-  const handleQuntity = (e) => {
+  const handleQuantity = (e) => {
     setQuantity(e.target.value);
   };
 
@@ -91,7 +91,7 @@ export default function Product(props) {
                   className={classes.quantityInput}
                   type="number"
                   value={quantity}
-                  onChange={handleQuntity}
+                  onChange={handleQuantity}
                   inputProps={{ min: 1, max: 32 }}
                 />
               </FormControl>

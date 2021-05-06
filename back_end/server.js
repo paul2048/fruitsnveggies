@@ -239,6 +239,7 @@ app.post('/basket/remove', (req, res) => {
     args.push(discounted_price);
   }
 
+  // Remove the item(s) from the basket
   pool.query(q, args, (err) => {
     if (err) {
       console.error(err);
@@ -291,12 +292,12 @@ app.post('/order', async (req, res) => {
       if (err) {
         return console.error(err);
       }
-
       res.send(successMsg);
     });
   }
 
   if (payMethod === 'card') {
+    // Check the form's validity
     if (invalidName(ccName))
       errors.ccName = 'Invalid name';
     if (!cardValidator.number(ccNumber).isValid)
@@ -357,6 +358,52 @@ app.post('/order', async (req, res) => {
   }
 });
 
+app.post('/addBalance', async (req, res) => {
+  const { amount, ccName, ccNumber, ccDate, cvc } = req.body;
+  const errors = {};
+  const minAmount = 10;
+  const bankAccountBalance = 1478;
+
+  // Check the form's validity
+  if (amount < minAmount)
+    errors.amount = 'The minimum amount is 10';
+  if (invalidName(ccName))
+    errors.ccName = 'Invalid name';
+  if (!cardValidator.number(ccNumber).isValid)
+    errors.ccNumber = 'Invalid card number';
+  if (new Date(ccDate) < new Date())
+    errors.ccDate = 'The card is expired';
+  if (!/^\d{3}$/.test(cvc))
+    errors.cvc = 'The CVC must be a 3 digits string';
+
+  // If the form is invalid
+  if (Object.entries(errors).length > 0) {
+    return res.status(422).send(errors);
+  }
+
+  // After the validity of the form was checked, hypotetically try to make the bank
+  // account transfer by making sure `amount` is smaller the user's bank account capital
+  if (amount > bankAccountBalance) {
+    errors.amount = 'Your bank cannot proccess the payment';
+    res.status(422).send(errors)
+  }
+
+  // The user's current balance
+  let q = 'SELECT balance FROM "user" WHERE id = $1';
+  const userId = req.user.id;
+  const balance = (await pool.query(q, [userId])).rows[0].balance;
+
+  // Update the balance of the user
+  const newBalance = balance + amount;
+  q = 'UPDATE "user" SET balance = $1 WHERE id = $2';
+  pool.query(q, [newBalance, userId], (err) => {
+    if (err) {
+      return console.error(err);
+    }
+    res.send(`Successfully added £${amount}`);
+  });
+});
+
 app.post('/accounts/signup', async (req, res) => {
   // Destructure the form's data
   const { firstname, lastname, email, password1, password2, city, postcode, street } = req.body;
@@ -395,7 +442,7 @@ app.post('/accounts/signup', async (req, res) => {
     const args = [email, hash, firstname, lastname, city_id, postcode, street];
 
     // Try to insert the user into the database
-    await pool.query(q, args, (err) => {
+    pool.query(q, args, (err) => {
       // Handle query errors
       if (err) {
         // If the email is already taken
