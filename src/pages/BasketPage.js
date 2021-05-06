@@ -132,8 +132,17 @@ export default function BasketPage() {
     const data = { payMethod, ccName, ccNumber, ccDate, cvc, confirmBitcoin };
     axios.post('http://localhost:4000/order', data, { withCredentials: true })
       .then((res) => {
+        if (payMethod === 'balance') {
+          // Update the balance of the user on the client side aswell
+          const user = JSON.parse(localStorage.getItem('user'));
+          const balance = (user.balance - basketPrice()).toFixed(2);
+          localStorage.setItem('user', JSON.stringify({ ...user, balance }));
+        }
+
+        // Empty the basket
         setBasket([]);
         alert(res.data);
+        window.location.reload();
       })
       .catch((err) => handleFormErrors(err));
   };
@@ -324,7 +333,7 @@ export default function BasketPage() {
                   color="primary"
                   size="large"
                   type="submit"
-                  disabled={payMethod === 'balance' && hasEnoughBalance()}
+                disabled={(payMethod === 'balance' && hasEnoughBalance()) || basket.length === 0}
                 >
                   <ShopRoundedIcon /> &nbsp;Place order
                 </Button>

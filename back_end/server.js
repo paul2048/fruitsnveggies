@@ -87,9 +87,9 @@ app.get('/products/:productType?', (req, res) => {
   try {
     pool.query(q, [], (err, qRes) => {
       if (err) console.error(err);
-      // When we have 3 apples and 2 bananas, we have 5 items
+      // Exmaple: when we have 3 apples and 2 bananas, we have 5 items
       const items = qRes.rows;
-      // When we have 3 apples and 2 bananas, we have 2 products
+      // Exmaple: when we have 3 apples and 2 bananas, we have 2 products
       const products = [];
 
       for (item of items) {
@@ -257,7 +257,12 @@ app.post('/order', async (req, res) => {
   const userId = req.user.id;
   const basket = await getUserBasket(userId);
   const errors = {};
-  let q = `
+
+  if (basket.length === 0) {
+    return res.status(422);
+  }
+
+  let transactionQ = `
     WITH new_transaction AS (
       INSERT INTO "transaction" ("type")
       VALUES ($1)
@@ -282,9 +287,9 @@ app.post('/order', async (req, res) => {
   //    of the newly inserted transaction row
   // 3. Remove the items from the user's basket
   const makeTransaction = (successMsg) => {
-    pool.query(q, [payMethod, userId], (err) => {
+    pool.query(transactionQ, [payMethod, userId], (err) => {
       if (err) {
-        console.error(err);
+        return console.error(err);
       }
 
       res.send(successMsg);
@@ -309,23 +314,30 @@ app.post('/order', async (req, res) => {
     makeTransaction(successMsg);
   }
   else if (payMethod === 'balance') {
-    const balance = req.user.balance;
+    // The user's current balance
+    let q = 'SELECT balance FROM "user" WHERE id = $1';
+    const balance = (await pool.query(q, [userId])).rows[0].balance;
     // The total price of the items in the user's basket
     const basketPrice = basket.reduce((acc, { price, quantity }) => {
-      return acc + (+price * quantity);
+      return acc + price * quantity;
     }, 0);
 
-    if (+balance < basketPrice) {
+    if (balance < basketPrice) {
       return res.status(422).send('Insufficient funds');
     }
 
-    // Subtract `basketPrice` from the user's balance
-    const newBalance = (+balance - +basketPrice).toFixed(2);
+    // Update the balance of the user
+    const newBalance = balance - basketPrice;
     q = 'UPDATE "user" SET balance = $1 WHERE id = $2';
-    await pool.query(q, [newBalance, userId]);
+    pool.query(q, [newBalance, userId], (err) => {
+      if (err) {
+        return console.error(err);
+      }
 
-    const successMsg = 'Your order was placed successfully';
-    makeTransaction(successMsg);
+      const successMsg = 'Your order was placed successfully';
+      makeTransaction(successMsg);
+    });
+
   }
   else if (payMethod === 'bitcoin') {
     if (confirmBitcoin !== true)

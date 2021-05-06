@@ -34,7 +34,7 @@ const theme = createMuiTheme({
   },
   palette: {
     primary: {
-      main: '#70d14f',
+      main: '#60c93d',
     },
   },
   shape: {

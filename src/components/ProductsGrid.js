@@ -2,7 +2,6 @@ import Product from './Product';
 import axios from 'axios';
 import SortRoundedIcon from '@material-ui/icons/SortRounded';
 import { useState, useEffect } from 'react';
-import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab';
 import { Grid, makeStyles, Paper, Typography, Menu, MenuItem, Button } from '@material-ui/core';
 
 const useStyles = makeStyles({
@@ -32,10 +31,6 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  selectPagePaper: {
-    padding: 10,
-    textAlign: 'center',
-  },
 });
 
 export default function ProductsGrid(props) {
@@ -44,7 +39,6 @@ export default function ProductsGrid(props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [sortBy, setSortBy] = useState(selectedSort || sortFactors[0]);
   const [products, setProducts] = useState([]);
-  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const type = props.productsType;
   const classes = useStyles();
@@ -60,10 +54,6 @@ export default function ProductsGrid(props) {
     setAnchorEl(null);
   };
 
-  const handlePageChange = (e, page) => {
-    setPage(page);
-  };
-
   useEffect(() => {
     axios.get(`http://localhost:4000/products/${type === 'all' ? '' : type}?sortBy=${sortBy}`)
       .then((res) => {
@@ -71,9 +61,7 @@ export default function ProductsGrid(props) {
         setIsLoading(false);
       })
       .catch((e) => console.error(e));
-
-    handlePageChange('', page);
-  }, [type, page, sortBy]);
+  }, [type, sortBy]);
 
   return (
     <Grid className={classes.grid} container spacing={4}>
@@ -129,25 +117,6 @@ export default function ProductsGrid(props) {
           </Paper>
         </Grid>
       ))}
-
-      <Grid item xs={12}>
-        <Paper className={classes.selectPagePaper}>
-          <ToggleButtonGroup size="large" value={page} exclusive onChange={handlePageChange}>
-            <ToggleButton value={1}>
-              1
-            </ToggleButton>
-            <ToggleButton value={2}>
-              2
-            </ToggleButton>
-            <ToggleButton value={3}>
-              3
-            </ToggleButton>
-            <ToggleButton value={4}>
-              4
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Paper>
-      </Grid>
     </Grid>
   );
 }

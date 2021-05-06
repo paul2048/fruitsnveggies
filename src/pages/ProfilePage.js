@@ -68,7 +68,7 @@ export default function ProfilePage() {
         <Paper className={classes.userPaper}>
           <Grid container justify="center">
             <Grid item xs={12}>
-              <Typography variant="h3" align="center">User info</Typography>
+              <Typography variant="h3" align="center">Add balance funds</Typography>
             </Grid>
           </Grid>
         </Paper>
@@ -78,7 +78,7 @@ export default function ProfilePage() {
         <Paper className={classes.userPaper}>
           <Grid container justify="center">
             <Grid item xs={12}>
-              <Typography variant="h3" align="center">User info</Typography>
+              <Typography variant="h3" align="center">Order history</Typography>
             </Grid>
           </Grid>
         </Paper>
