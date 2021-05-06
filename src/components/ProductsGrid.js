@@ -2,7 +2,7 @@ import Product from './Product';
 import axios from 'axios';
 import SortRoundedIcon from '@material-ui/icons/SortRounded';
 import { useState, useEffect } from 'react';
-import { Grid, makeStyles, Paper, Typography, Menu, MenuItem, Button } from '@material-ui/core';
+import { Grid, makeStyles, Paper, Typography, Menu, MenuItem, Button, CircularProgress } from '@material-ui/core';
 
 const useStyles = makeStyles({
   headerPaper: {
@@ -30,6 +30,9 @@ const useStyles = makeStyles({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  circPorgress: {
+    margin: 'auto',
   },
 });
 
@@ -105,7 +108,8 @@ export default function ProductsGrid(props) {
         </Paper>
       </Grid>
 
-      {!isLoading && products.map(({ id, name, price, sell_per_unit, prices }) => (
+      {!isLoading && products.length
+      ? products.map(({ id, name, price, sell_per_unit, prices }) => (
         <Grid className={classes.gridItem} item xs={12} sm={6} key={name}>
           <Paper className={classes.gridItemPaper}>
             <Product
@@ -116,7 +120,16 @@ export default function ProductsGrid(props) {
             />
           </Paper>
         </Grid>
-      ))}
+      ))
+      : !isLoading && products.length === 0
+      ? <Grid item xs={12}>
+          <Paper className={classes.gridItemPaper}>
+            <Typography variant="h4">
+              There are no items in this category for now 🗿
+            </Typography>
+          </Paper>
+        </Grid>
+      : <CircularProgress className={classes.circPorgress} size={300} />}
     </Grid>
   );
 }

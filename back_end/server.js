@@ -74,7 +74,7 @@ app.get('/products/:productType?', (req, res) => {
 
   // Filter out the products that are not discounted
   if (type === 'discounts')
-    q += ' WHERE discounted_price IS NOT NULL';
+    q += ' WHERE discounted_price IS NOT NULL AND transaction_id IS NULL';
   // Filter out the type of products that are not requested
   else if (type !== undefined)
     q += ` WHERE is_fruit = ${type === 'fruits'}`;
