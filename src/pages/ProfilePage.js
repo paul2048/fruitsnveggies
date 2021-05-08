@@ -1,3 +1,4 @@
+import OrderHistoryTable from '../components/OrderHistoryTable';
 import PaymentRoundedIcon from '@material-ui/icons/PaymentRounded';
 
 import axios from 'axios';
@@ -110,7 +111,7 @@ export default function ProfilePage() {
 
             <Grid className={classes.userInfo} item xs={12} md={8}>
               {userInfo.map(([attr, value]) => (
-                <Grid container>
+                <Grid container key={attr}>
                   <Grid item xs={12} sm={5}>
                     <Typography variant="h6">{attr}: </Typography>
                   </Grid>
@@ -241,9 +242,13 @@ export default function ProfilePage() {
 
       <Grid item>
         <Paper className={classes.userPaper}>
-          <Grid container justify="center">
+          <Grid container spacing={3} justify="center">
             <Grid item xs={12}>
               <Typography variant="h3" align="center">Order history</Typography>
+            </Grid>
+
+            <Grid item xs={12}>
+              <OrderHistoryTable />
             </Grid>
           </Grid>
         </Paper>

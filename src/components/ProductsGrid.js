@@ -32,7 +32,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
   },
   circPorgress: {
-    margin: 'auto',
+    margin: '100px auto',
   },
 });
 
@@ -129,7 +129,7 @@ export default function ProductsGrid(props) {
             </Typography>
           </Paper>
         </Grid>
-      : <CircularProgress className={classes.circPorgress} size={300} />}
+      : <CircularProgress className={classes.circPorgress} size={200} />}
     </Grid>
   );
 }

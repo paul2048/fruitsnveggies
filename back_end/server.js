@@ -265,8 +265,8 @@ app.post('/order', async (req, res) => {
 
   let transactionQ = `
     WITH new_transaction AS (
-      INSERT INTO "transaction" ("type")
-      VALUES ($1)
+      INSERT INTO "transaction" ("type", user_id)
+      VALUES ($1, $2)
       RETURNING id
     ),
     basket_items AS (
@@ -359,6 +359,11 @@ app.post('/order', async (req, res) => {
 });
 
 app.post('/addBalance', async (req, res) => {
+  // If the user is not logged in
+  if (!req.user) {
+    return res.sendStatus(403);
+  }
+
   const { amount, ccName, ccNumber, ccDate, cvc } = req.body;
   const errors = {};
   const minAmount = 10;
@@ -404,6 +409,51 @@ app.post('/addBalance', async (req, res) => {
   });
 });
 
+app.post('/orderHistory', async (req, res) => {
+  // If the user is not logged in
+  if (!req.user) {
+    return res.sendStatus(403);
+  }
+
+  const userId = req.user.id;
+  const orders = {};
+  const q = `SELECT "transaction".id, "timestamp", "transaction"."type",
+            COALESCE(discounted_price, price) as price, "name" FROM item
+            JOIN "transaction" ON transaction_id = "transaction".id
+            JOIN product ON product_id = product.id
+            WHERE user_id = $1`;
+  const transactions = (await pool.query(q, [userId])).rows;
+
+  transactionLoop:
+  for ({ id, timestamp, type, price, name } of transactions) {
+    const order = orders[id];
+
+    // If the current iteration represents a new order
+    if (order === undefined) {
+      orders[id] = {
+        timestamp: timestamp.toLocaleString(),
+        type,
+        basket: [{ name, price, quantity: 1 }],
+      }
+    }
+    else {
+      // Iterate through each row of the basket and if the current item of the transaction
+      // is identical the current item of the basket, increment the quantity by 1
+      for (item of order.basket) {
+        if (name === item.name && price === item.price) {
+          item.quantity++;
+          continue transactionLoop;
+        }
+      }
+      
+      // If the items aren't identical, create a new basket row 
+      order.basket.push({ name, price, quantity: 1 });
+    }
+  }
+
+  res.send(Object.values(orders));
+});
+
 app.post('/accounts/signup', async (req, res) => {
   // Destructure the form's data
   const { firstname, lastname, email, password1, password2, city, postcode, street } = req.body;
@@ -421,7 +471,7 @@ app.post('/accounts/signup', async (req, res) => {
     errors.password1 = 'Password is shorter than 8 characters';
   else if (password1 !== password2)
     errors.password2 = 'Passwords do not match';
-
+  // If the the city is not in the list of covered cities
   const cities = (await pool.query('SELECT * FROM city')).rows;
   if (invalidCity(cities, city))
     errors.city = 'Your city is not in range';
