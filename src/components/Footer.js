@@ -50,7 +50,7 @@ export default function Footer() {
           </Typography>
           <Link to="/about">
             <Button variant="contained" color="secondary">
-              <InfoRoundedIcon /> About us
+              <InfoRoundedIcon />&nbsp;About us
             </Button>
           </Link>
         </Grid>

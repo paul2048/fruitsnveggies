@@ -18,7 +18,7 @@ const PORT = 4000;
 // PosgreSQL error codes are "translated" here
 const PG_ERROR_CODES = {
   duplicateKeys: '23505',
-}
+};
 
 
 // Use the `bodyParser` middleware which parses request bodies into `req.body`.
@@ -391,7 +391,7 @@ app.post('/addBalance', async (req, res) => {
   // account transfer by making sure `amount` is smaller the user's bank account capital
   if (amount > bankAccountBalance) {
     errors.amount = 'Your bank cannot proccess the payment';
-    res.status(422).send(errors)
+    res.status(422).send(errors);
   }
 
   // The user's current balance

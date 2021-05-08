@@ -56,6 +56,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState({});
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [btnLoading, setBtnLoading] = useState(false);
   const classes = useStyles();
   const history = useHistory();
   const macronutrients = ['carbohydrates (g)', 'protein (g)', 'fat (g)', 'fiber (g)'];
@@ -85,6 +86,8 @@ export default function ProductDetailPage() {
   };
 
   const addToCart = () => {
+    setBtnLoading(true);
+
     const data = {
       productId: product.id,
       quantity: quantity,
@@ -92,8 +95,8 @@ export default function ProductDetailPage() {
 
     if (localStorage.getItem('user') !== null) {
       axios.post('http://localhost:4000/basket/add', data, { withCredentials: true })
-        .then((res) => console.log(res))
-        .catch((err) => alert(err.response.data));
+        .catch((err) => alert(err.response.data))
+        .finally(() => setBtnLoading(false));
     }
     else {
       history.push('/login');
@@ -165,6 +168,7 @@ export default function ProductDetailPage() {
                       variant="contained"
                       color="primary"
                       onClick={addToCart}
+                      disabled={btnLoading}
                     >
                       <AddShoppingCartRoundedIcon />&nbsp;
                       Add to cart (£{(quantity * product.price).toFixed(2)})
