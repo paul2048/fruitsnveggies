@@ -53,6 +53,7 @@ export default function BasketPage() {
   const [ccDate, setCcDate] = useState(new Date().toLocaleDateString('swe-SW').slice(0,7));
   const [cvc, setCvc] = useState('');
   const [confirmBitcoin, setConfirmBitcoin] = useState(false);
+  const [btnLoading, setBtnLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const classes = useStyles();
 
@@ -128,6 +129,7 @@ export default function BasketPage() {
 
   const placeOrder = (e) => {
     e.preventDefault();
+    setBtnLoading(true);
 
     const data = { payMethod, ccName, ccNumber, ccDate, cvc, confirmBitcoin };
     axios.post('http://localhost:4000/order', data, { withCredentials: true })
@@ -144,7 +146,8 @@ export default function BasketPage() {
         alert(res.data);
         window.location.reload();
       })
-      .catch((err) => handleFormErrors(err));
+      .catch((err) => handleFormErrors(err))
+      .finally(() => setBtnLoading(false));
   };
 
   return (!isLoading &&
@@ -333,9 +336,13 @@ export default function BasketPage() {
                   color="primary"
                   size="large"
                   type="submit"
-                disabled={(payMethod === 'balance' && hasEnoughBalance()) || basket.length === 0}
+                disabled={
+                  (payMethod === 'balance' && hasEnoughBalance())
+                  || basket.length === 0
+                  || btnLoading
+                }
                 >
-                  <ShopRoundedIcon /> &nbsp;Place order
+                  <ShopRoundedIcon />&nbsp;Place order
                 </Button>
               </Grid>
             </Grid>

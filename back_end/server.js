@@ -215,6 +215,7 @@ app.post('/basket/add', async (req, res) => {
         console.error(err);
         return res.send(err);
       }
+      res.send('Added to basket');
     });
   });
 });
@@ -421,7 +422,7 @@ app.post('/orderHistory', async (req, res) => {
             COALESCE(discounted_price, price) as price, "name" FROM item
             JOIN "transaction" ON transaction_id = "transaction".id
             JOIN product ON product_id = product.id
-            WHERE user_id = $1`;
+            WHERE user_id = $1 ORDER BY "timestamp" DESC`;
   const transactions = (await pool.query(q, [userId])).rows;
 
   transactionLoop:

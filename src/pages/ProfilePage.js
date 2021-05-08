@@ -39,6 +39,7 @@ export default function ProfilePage() {
   const [ccDate, setCcDate] = useState(new Date().toLocaleDateString('swe-SW').slice(0, 7));
   const [cvc, setCvc] = useState('');
   const [formErrors, setFormErrors] = useState({});
+  const [btnLoading, setBtnLoading] = useState(false);
   const user = JSON.parse(localStorage.getItem('user'));
   const classes = useStyles();
   const userInfo = [
@@ -79,6 +80,7 @@ export default function ProfilePage() {
 
   const addBalance = (e) => {
     e.preventDefault();
+    setBtnLoading(true);
 
     const data = { amount, ccName, ccNumber, ccDate, cvc };
     axios.post('http://localhost:4000/addBalance', data, { withCredentials: true })
@@ -91,7 +93,8 @@ export default function ProfilePage() {
         alert(res.data);
         window.location.reload();
       })
-      .catch((err) => handleFormErrors(err));
+      .catch((err) => handleFormErrors(err))
+      .finally(() => setBtnLoading(false));
   };
 
   return (
@@ -229,8 +232,9 @@ export default function ProfilePage() {
                       color="primary"
                       size="large"
                       type="submit"
+                      disabled={btnLoading}
                     >
-                      <PaymentRoundedIcon /> &nbsp;Add balance
+                      <PaymentRoundedIcon />&nbsp;Add balance
                     </Button>
                   </Grid>
                 </Grid>

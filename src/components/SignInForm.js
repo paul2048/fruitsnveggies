@@ -8,6 +8,7 @@ export default function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formErrors, setFormErrors] = useState({});
+  const [btnLoading, setBtnLoading] = useState(false);
   const history = useHistory();
 
   const handleFormErrors = () => {
@@ -20,6 +21,7 @@ export default function SignInForm() {
   const signInUser = (e) => {
     // Prevent the page from reloading
     e.preventDefault();
+    setBtnLoading(true);
 
     // Object that holds the data of the form
     const data = {
@@ -34,7 +36,8 @@ export default function SignInForm() {
         history.push('/');
         window.location.reload();
       })
-      .catch((err) => handleFormErrors(err));
+      .catch((err) => handleFormErrors(err))
+      .finally(() => setBtnLoading(false));
   }
 
   const handleEmail = (e) => {
@@ -82,8 +85,8 @@ export default function SignInForm() {
         </Grid>
 
         <Grid item>
-          <Button variant="contained" color="primary" type="submit">
-            <ExitToAppRoundedIcon /> Sign in
+          <Button variant="contained" color="primary" type="submit" disabled={btnLoading}>
+            <ExitToAppRoundedIcon />&nbsp;Sign in
           </Button>
         </Grid>
       </Grid>

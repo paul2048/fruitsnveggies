@@ -13,9 +13,8 @@ export default function SignUpForm() {
   const [postcode, setPostcode] = useState('');
   const [street, setStreet] = useState('');
   const [formErrors, setFormErrors] = useState({});
-
   const [citiesArr, setCitiesArr] = useState([]);
-  // const classes = useStyles();
+  const [btnLoading, setBtnLoading] = useState(false);
 
   const getCities = () =>
     axios.get('http://localhost:4000/cities')
@@ -28,6 +27,7 @@ export default function SignUpForm() {
   const signUpUser = (e) => {
     // Prevent the page from reloading
     e.preventDefault();
+    setBtnLoading(true);
 
     // Object that holds the data of the form
     const data = {
@@ -43,8 +43,9 @@ export default function SignUpForm() {
 
     // Send a request to the server to sign up the user
     axios.post('http://localhost:4000/accounts/signup', data, { withCredentials: true })
-      .then((res) => window.location.reload())
-      .catch((err) => handleFormErrors(err));
+      .then(() => window.location.reload())
+      .catch((err) => handleFormErrors(err))
+      .finally(() => setBtnLoading(false));
   }
 
   const handleFirstName = (e) => {
@@ -208,8 +209,8 @@ export default function SignUpForm() {
         </Grid>
 
         <Grid item>
-          <Button variant="contained" color="primary" type="submit">
-            <CreateRoundedIcon />Sign up
+          <Button variant="contained" color="primary" type="submit" disabled={btnLoading}>
+            <CreateRoundedIcon />&nbsp;Sign up
           </Button>
         </Grid>
       </Grid>
