@@ -45,7 +45,7 @@ export default function ProfilePage() {
   const userInfo = [
     ['Full name', `${user.firstname} ${user.lastname}`],
     ['Email address', user.email],
-    ['Phisical address', `${user.city}, ${user.street}, ${user.postcode}`]];
+    ['Physical address', `${user.city}, ${user.street}, ${user.postcode}`]];
   
   const handleFormErrors = (err) => {
     setFormErrors(err.response.data);
@@ -87,7 +87,7 @@ export default function ProfilePage() {
       .then((res) => {
         // Update the balance of the user on the client side aswell
         const user = JSON.parse(localStorage.getItem('user'));
-        const balance = (+user.balance + amount).toFixed(2);
+        const balance = ((+user.balance) + (+amount)).toFixed(2);
         localStorage.setItem('user', JSON.stringify({ ...user, balance }));
 
         alert(res.data);
