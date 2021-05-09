@@ -400,7 +400,7 @@ app.post('/addBalance', async (req, res) => {
   const balance = (await pool.query(q, [userId])).rows[0].balance;
 
   // Update the balance of the user
-  const newBalance = balance + amount;
+  const newBalance = +balance + amount;
   q = 'UPDATE "user" SET balance = $1 WHERE id = $2';
   pool.query(q, [newBalance, userId], (err) => {
     if (err) {
