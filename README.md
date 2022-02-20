@@ -1,3 +1,6 @@
+# Fruits n' Veggies
+Fruits n' Veggies is a fictional shop of fruits and vegetables. You can add items to your basket and buy them using your card, in-shop credit balance, or bitcoin. For each fruit/vegetable you can see its nutrition through a table or through pie graphs. After each order, a recipt is generated and you can see the order history ([demo video](https://i.imgur.com/6HiFZSx.mp4)).
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
